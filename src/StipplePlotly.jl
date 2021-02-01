@@ -19,7 +19,7 @@ function deps() :: String
       :javascript) |> Genie.Renderer.respond
   end
 
-  Genie.Router.route("/js/stipple/loadash.min.js") do
+  Genie.Router.route("/js/stipple/lodash.min.js") do
     Genie.Renderer.WebRenderable(
       read(joinpath(@__DIR__, "..", "files", "js", "lodash.min.js"), String),
       :javascript) |> Genie.Renderer.respond
@@ -43,7 +43,7 @@ function deps() :: String
     Genie.Renderer.Html.script(src="/js/stipple/resizesensor.min.js"),
     Genie.Renderer.Html.script(src="/js/stipple/lodash.min.js"),
     Genie.Renderer.Html.script(src="/js/stipple/vueresize.min.js"),
-    Genie.Renderer.Html.script(src="/js/stipple/vueplotly.min.js"),
+    Genie.Renderer.Html.script(src="/js/stipple/$vueplotly"),
   )
 end
 
