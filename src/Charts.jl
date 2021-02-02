@@ -1,13 +1,24 @@
 module Charts
 
-# import DataFrames
 import Genie, Stipple
 import Genie.Renderer.Html: HTMLString, normal_element
+
+using Stipple
+
+export PlotLayout, PlotData, plot
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
 const PLOT_TYPE_SCATTER = "scatter"
 const PLOT_TYPE_SCATTERGL = "scattergl"
+const PLOT_TYPE_BAR = "bar"
+const PLOT_TYPE_PIE = "pie"
+const PLOT_TYPE_HEATMAP = "heatmap"
+const PLOT_TYPE_HEATMAPGL = "heatmapgl"
+const PLOT_TYPE_IMAGE = "image"
+const PLOT_TYPE_CONTOUR = "contour"
+const PLOT_TYPE_TABLE = "table"
+const PLOT_TYPE_BOX = "box"
 
 const LAYOUT_TITLE_REF_CONTAINER = "container"
 const LAYOUT_TITLE_REF_PAPER = "paper"
@@ -32,9 +43,6 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
-using Stipple
-
-export PlotLayout, PlotData, plot
 
 Genie.Renderer.Html.register_normal_element("plotly", context = @__MODULE__)
 
@@ -175,9 +183,7 @@ Base.@kwdef mutable struct PlotLayout
   extendtreemapcolors::Bool = true
 end
 
-Base.@kwdef mutable struct PlotData{T<:Vector, V<:Vector}
-  x::T = T[]
-  y::V = V[]
+Base.@kwdef mutable struct PlotData
   plot::String = PLOT_TYPE_SCATTER
 
   alignmentgroup::String = ""
@@ -185,6 +191,7 @@ Base.@kwdef mutable struct PlotData{T<:Vector, V<:Vector}
   autocontour::Union{Bool,Nothing} = nothing
   automargin::Union{Bool,Nothing} = nothing
   base::Union{Number,String,Nothing} = nothing
+  boxmean::Union{Bool,String,Nothing} = nothing
   cells::Union{Dict,Nothing} = nothing
   cliponaxis::Bool = true
   coloraxis::Union{String,Nothing} = nothing
@@ -256,6 +263,7 @@ Base.@kwdef mutable struct PlotData{T<:Vector, V<:Vector}
   values::Union{Vector,Nothing} = nothing
   visible::Union{String,Bool,Nothing} = nothing
   width::Union{Int,Vector{Int},Nothing} = nothing
+  x::Union{Vector,Nothing} = nothing
   x0::Union{Int,String,Nothing} = nothing
   xaxis::Union{String,Nothing} = nothing
   xcalendar::String = "gregorian"
@@ -264,6 +272,7 @@ Base.@kwdef mutable struct PlotData{T<:Vector, V<:Vector}
   xperiodalignment::Union{String,Nothing} = nothing
   xperiod0::Union{Number,String,Nothing} = nothing
   xtype::Union{String,Nothing} = nothing
+  y::Union{Vector,Nothing} = nothing
   y0::Union{Int,String,Nothing} = nothing
   yaxis::Union{String,Nothing} = nothing
   ycalendar::String = "gregorian"
@@ -298,8 +307,6 @@ end
 
 function Base.Dict(pd::PlotData)
   trace = Dict(
-    :x => pd.x,
-    :y => pd.y,
     :type => pd.plot,
     :showlegend => pd.showlegend,
     :legendgroup => pd.legendgroup,
@@ -334,7 +341,8 @@ function Base.Dict(pd::PlotData)
   end
 
   optionals!(trace, pd, [:autocolorscale, :autocontour, :automargin,
-                        :base, :cells, :coloraxis, :colorbar, :colorscale, :columnorder, :columnwidth,
+                        :base, :boxmean,
+                        :cells, :coloraxis, :colorbar, :colorscale, :columnorder, :columnwidth,
                         :connectgaps, :constraintext, :contours, :customdata,
                         :direction, :dlabel, :domain, :dx, :dy,
                         :error_x, :error_y,
@@ -349,8 +357,8 @@ function Base.Dict(pd::PlotData)
                         :textposition, :texttemplate, :transpose,
                         :uirevision, :unselected, :values, :visible,
                         :width,
-                        :x0, :xaxis, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
-                        :y0, :yaxis, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
+                        :x, :x0, :xaxis, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
+                        :y, :y0, :yaxis, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
                         :z, :zauto, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth])
 end
 
