@@ -39,11 +39,11 @@ function deps() :: String
   end
 
   string(
-    Genie.Renderer.Html.script(src="/js/stipple/plotly.min.js"),
-    Genie.Renderer.Html.script(src="/js/stipple/resizesensor.min.js"),
-    Genie.Renderer.Html.script(src="/js/stipple/lodash.min.js"),
-    Genie.Renderer.Html.script(src="/js/stipple/vueresize.min.js"),
-    Genie.Renderer.Html.script(src="/js/stipple/$vueplotly"),
+    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/plotly.min.js"),
+    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/resizesensor.min.js"),
+    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/lodash.min.js"),
+    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/vueresize.min.js"),
+    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/$vueplotly"),
   )
 end
 
