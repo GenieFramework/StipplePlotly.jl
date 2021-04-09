@@ -69,6 +69,11 @@ Base.@kwdef mutable struct Font
   color::String = "#444"
 end
 
+Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
+
+
+Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
+
 Base.@kwdef mutable struct PlotLayout
   title_text::String = ""
   title_font::Font = Font()
@@ -198,6 +203,20 @@ Base.@kwdef mutable struct PlotLayout
   extendsunburstcolors::Bool = true
   # TODO: treemapcolorway
   extendtreemapcolors::Bool = true
+end
+
+
+function Base.show(io::IO, l::PlotLayout)
+  default = PlotLayout()
+  output = "layout: \n"
+  for f in fieldnames(typeof(l))
+    prop = getproperty(l, f)
+    if prop != getproperty(default, f)
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(output)
 end
 
 Base.@kwdef mutable struct PlotData
