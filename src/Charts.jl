@@ -5,7 +5,7 @@ import Genie.Renderer.Html: HTMLString, normal_element
 
 using Stipple
 
-export PlotLayout, PlotData, Trace, plot
+export PlotLayout, PlotData, Trace, plot, ErrorBar, Font, ColorBar
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
@@ -69,8 +69,61 @@ Base.@kwdef mutable struct Font
   color::String = "#444"
 end
 
-Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
+function Font(fontsize::Union{Int,Float64})
+  fs = Font()
+  fs.size = fontsize
+  return fs
+end
 
+function ColorBar(text, title_font_size::Union{Int,Float64}, side)
+  Dict(
+    :title => Dict(
+      :text => text,
+      :font => Font(title_font_size),
+      :side => side
+    )
+  )
+end
+
+function ErrorBar(error_array::Vector)
+  Dict(
+    :type => "data",
+    :array => error_array,
+    :visible => true,
+    :symmetric => true
+  )
+end
+
+function ErrorBar(error_array::Vector, error_arrayminus::Vector)
+  Dict(
+    :type => "data",
+    :array => error_array,
+    :arrayminus => error_arrayminus,
+    :visible => true,
+    :symmetric => false
+  )
+end
+
+function ErrorBar(error_value::Number)
+  Dict(
+    :type => "percent",
+    :value => error_value,
+    :visible => true,
+    :symmetric => true
+  )
+end
+
+function ErrorBar(error_value::Number, error_valueminus::Number)
+  Dict(
+    :type => "percent",
+    :value => error_value,
+    :valueminus => error_valueminus,
+    :visible => true,
+    :symmetric => false
+  )
+end
+
+Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
 
 Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
 
@@ -87,6 +140,49 @@ Base.@kwdef mutable struct PlotLayout
   title_pad_r::Int = 0
   title_pad_b::Int = 0
   title_pad_l::Int = 0
+
+  xaxis_text::String = "x-axis"
+  xaxis_font::Font = Font()
+  xaxis_automargin::Bool = true
+  xaxis_ticks::String = "inside"
+  xaxis_showline::Bool = false
+  xaxis_zeroline::Bool = true
+  xaxis_linecolor::String = "#444"
+  xaxis_linewidth::Int = 1
+  xaxis_mirror::Union{Bool, String} = false
+  xaxis_ticklabelposition::String = "outside"
+  xaxis_showgrid::Bool = true
+  xaxis_gridcolor::String = "#eee"
+  xaxis_gridwidth::Int = 1
+  xaxis_side::String = "bottom"
+  xaxis_anchor::String = "free"
+  xaxis_position::Float64 = 0.0
+  xaxis_scaleanchor::String = ""
+  xaxis_scaleratio::Int = 1
+  xaxis_constrain::String = "domain"
+  xaxis_constraintoward::String = "center"
+
+  yaxis_text::String = "y-axis"
+  yaxis_font::Font = Font()
+  yaxis_automargin::Bool = true
+  yaxis_ticks::String = "inside"
+  yaxis_showline::Bool = false
+  yaxis_zeroline::Bool = true
+  yaxis_linecolor::String = "#444"
+  yaxis_linewidth::Int = 1
+  yaxis_mirror::Union{Bool, String} = false
+  yaxis_ticklabelposition::String = "outside"
+  yaxis_showgrid::Bool = true
+  yaxis_gridcolor::String = "#eee"
+  yaxis_gridwidth::Int = 1
+  yaxis_side::String = "left"
+  yaxis_anchor::String = "free"
+  yaxis_position::Float64 = 0.0
+  yaxis_scaleanchor::String = ""
+  yaxis_scaleratio::Int = 1
+  yaxis_constrain::String = "domain"
+  yaxis_constraintoward::String = "center"
+
   showlegend::Bool = true
   legend_bgcolor::Union{String,Nothing} = nothing
   legend_bordercolor::String = "#444"
@@ -205,7 +301,6 @@ Base.@kwdef mutable struct PlotLayout
   extendtreemapcolors::Bool = true
 end
 
-
 function Base.show(io::IO, l::PlotLayout)
   default = PlotLayout()
   output = "layout: \n"
@@ -250,7 +345,7 @@ Base.@kwdef mutable struct PlotData
   color::Union{String,Nothing} = nothing
   coloraxis::Union{String,Nothing} = nothing
   colorbar::Union{Dict,Nothing} = nothing
-  colorscale::Union{Vector,Nothing} = nothing
+  colorscale::Union{Matrix,String,Nothing} = nothing
   columnorder::Union{Vector,Nothing} = nothing
   columnwidth::Union{Float64,Int,Vector,Nothing} = nothing
   connectgaps::Union{Bool,Nothing} = nothing
@@ -407,7 +502,7 @@ Base.@kwdef mutable struct PlotData
   yperiodalignment::Union{String,Nothing} = nothing
   yperiod0::Union{Float64,Int,String,Nothing} = nothing
   ytype::Union{String,Nothing} = nothing
-  z::Union{Vector,Nothing} = nothing
+  z::Union{Matrix,Nothing} = nothing
   zauto::Union{Bool,Nothing} = nothing
   zcalendar::Union{String,Nothing} = nothing
   zhoverformat::Union{String,Nothing} = nothing
@@ -544,11 +639,73 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :y => pl.title_y,
       :xanchor => pl.title_xanchor,
       :yanchor => pl.title_yanchor,
-      :pad_t => pl.title_pad_t,
-      :pad_r => pl.title_pad_r,
-      :pad_b => pl.title_pad_b,
-      :pad_l => pl.title_pad_l
+      :pad => Dict(
+        :t => pl.title_pad_t,
+        :r => pl.title_pad_r,
+        :b => pl.title_pad_b,
+        :l => pl.title_pad_l
+      )
     ),
+
+    :xaxis => Dict(
+      :title => Dict(
+        :text => pl.xaxis_text,
+        :font => Dict(
+          :family => pl.xaxis_font.family,
+          :size => pl.xaxis_font.size,
+          :color => pl.xaxis_font.color
+        )
+      ),
+      :automargin => pl.xaxis_automargin,
+      :ticks => pl.xaxis_ticks,
+      :showline => pl.xaxis_showline,
+      :zeroline => pl.xaxis_zeroline,
+      :linecolor => pl.xaxis_linecolor,
+      :linewidth => pl.xaxis_linewidth,
+      :mirror => pl.xaxis_mirror,
+      :ticklabelposition => pl.xaxis_ticklabelposition,
+      :showgrid => pl.xaxis_showgrid,
+      :gridcolor => pl.xaxis_gridcolor,
+      :gridwidth => pl.xaxis_gridwidth,
+      :anchor => pl.xaxis_anchor,
+      :position => pl.xaxis_position,
+      :side => pl.xaxis_side,
+      :scaleanchor => pl.xaxis_scaleanchor,
+      :scaleratio => pl.xaxis_scaleratio,
+      :constrain => pl.xaxis_constrain,
+      :constraintoward => pl.xaxis_constraintoward
+    ),
+
+    :yaxis => Dict(
+      :title => Dict(
+        :text => pl.yaxis_text,
+        :font => Dict(
+          :family => pl.yaxis_font.family,
+          :size => pl.yaxis_font.size,
+          :color => pl.yaxis_font.color
+        )
+      ),
+      :automargin => pl.yaxis_automargin,
+      :ticks => pl.yaxis_ticks,
+      :showline => pl.yaxis_showline,
+      :zeroline => pl.yaxis_zeroline,
+      :linecolor => pl.yaxis_linecolor,
+      :linewidth => pl.yaxis_linewidth,
+      :mirror => pl.yaxis_mirror,
+      :ticklabelposition => pl.yaxis_ticklabelposition,
+      :showgrid => pl.yaxis_showgrid,
+      :gridcolor => pl.yaxis_gridcolor,
+      :gridwidth => pl.yaxis_gridwidth,
+      :anchor => pl.yaxis_anchor,
+      :position => pl.yaxis_position,
+      :side => pl.yaxis_side,
+      :scaleanchor => pl.yaxis_scaleanchor,
+      :scaleratio => pl.yaxis_scaleratio,
+      :scaleratio => pl.yaxis_scaleratio,
+      :constrain => pl.yaxis_constrain,
+      :constraintoward => pl.yaxis_constraintoward
+    ),
+
     :showlegend => pl.showlegend,
     :legend => Dict(
       :bordercolor => pl.legend_bordercolor,
