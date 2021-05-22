@@ -30,25 +30,28 @@ pd_scatter(name, xar, dx, yar, dy) = PlotData(
   name = name
 )
 
+pl() = PlotLayout(
+  plot_bgcolor = "#FFFFFF",
+  title_text = "Wave",
+  hovermode = "closest",
+  showlegend = true,
+  xaxis_text = "time (s)",
+  yaxis_text = "displacement (mm)",
+  yaxis_ticks = "outside",
+  xaxis_ticks = "outside",
+  xaxis_showline = true,
+  yaxis_showline = true,
+  yaxis_zeroline = false,
+  xaxis_zeroline = false,
+  xaxis_mirror = "all",
+  yaxis_mirror = "all"
+  # height = nothing,
+  # width = nothing
+)
+
 Base.@kwdef mutable struct Model <: ReactiveModel
   data::R{Vector{PlotData}} = [pd_line("Sinus", xrange), pd_scatter("Experiment", xexperiment, dx, yexperiment, dy)]
-  layout::R{PlotLayout} = PlotLayout(
-    plot_bgcolor = "#FFFFFF",
-    title_text = "Wave",
-    hovermode = "closest",
-    showlegend = true,
-    xaxis_text = "time (s)",
-    yaxis_text = "displacement (mm)",
-    yaxis_ticks = "outside",
-    xaxis_ticks = "outside",
-    xaxis_showline = true,
-    yaxis_showline = true,
-    yaxis_zeroline = false,
-    xaxis_zeroline = false,
-    xaxis_mirror = "all",
-    yaxis_mirror = "all",
-    width = 850,
-    height = 450)
+  layout::R{PlotLayout} = pl()
 end
 
 model = Stipple.init(Model())

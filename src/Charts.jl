@@ -161,6 +161,19 @@ Base.@kwdef mutable struct PlotLayout
   xaxis_scaleratio::Int = 1
   xaxis_constrain::String = "domain"
   xaxis_constraintoward::String = "center"
+  xaxis_autorange::Union{Bool,String} = true
+  xaxis_rangemode::String = "normal"
+  xaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  xaxis_fixedrange::Bool = false
+  xaxis_type::String = "-"
+  xaxis_autotypenumbers::String = "convert types"
+  xaxis_tickmode::Union{String,Nothing} = nothing
+  xaxis_nticks::Int = 0
+  xaxis_tick0::Union{Float64,Int,String} = 0
+  xaxis_dtick::Union{Float64,Int,String} = 1
+  xaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
+  xaxis_ticktext::Vector{String} = String[]
+  xaxis_tickformat::String = ""
 
   yaxis_text::String = "y-axis"
   yaxis_font::Font = Font()
@@ -182,6 +195,19 @@ Base.@kwdef mutable struct PlotLayout
   yaxis_scaleratio::Int = 1
   yaxis_constrain::String = "domain"
   yaxis_constraintoward::String = "center"
+  yaxis_autorange::Union{Bool,String} = true
+  yaxis_rangemode::String = "normal"
+  yaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  yaxis_fixedrange::Bool = false
+  yaxis_type::String = "-"
+  yaxis_autotypenumbers::String = "convert types"
+  yaxis_tickmode::Union{String,Nothing} = nothing
+  yaxis_nticks::Int = 0
+  yaxis_tick0::Union{Float64,Int,String} = 0
+  yaxis_dtick::Union{Float64,Int,String} = 1
+  yaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
+  yaxis_ticktext::Vector{String} = String[]
+  yaxis_tickformat::String = ""
 
   showlegend::Bool = true
   legend_bgcolor::Union{String,Nothing} = nothing
@@ -211,8 +237,8 @@ Base.@kwdef mutable struct PlotLayout
   margin_pad::Int = 0
   margin_autoexpand::Bool = true
   autosize::Bool = true
-  width::Int = 700
-  height::Int = 450
+  width::Union{Int,Nothing} = nothing #700
+  height::Union{Int,Nothing} = nothing #450
   font::Font = Font()
   uniformtext_mode::Union{String,Bool} = false
   uniformtext_minsize::Int = 0
@@ -539,6 +565,7 @@ function Base.show(io::IO, pd::PlotData)
   print(output)
 end
 
+
 #===#
 
 function Base.Dict(pd::PlotData)
@@ -673,7 +700,13 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :scaleanchor => pl.xaxis_scaleanchor,
       :scaleratio => pl.xaxis_scaleratio,
       :constrain => pl.xaxis_constrain,
-      :constraintoward => pl.xaxis_constraintoward
+      :constraintoward => pl.xaxis_constraintoward,
+      :autorange => pl.xaxis_autorange,
+      :rangemode => pl.xaxis_rangemode,
+      :fixedrange => pl.xaxis_fixedrange,
+      :type => pl.xaxis_type,
+      :autotypenumbers => pl.xaxis_autotypenumbers,
+      :tickformat => pl.xaxis_tickformat
     ),
 
     :yaxis => Dict(
@@ -703,7 +736,13 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :scaleratio => pl.yaxis_scaleratio,
       :scaleratio => pl.yaxis_scaleratio,
       :constrain => pl.yaxis_constrain,
-      :constraintoward => pl.yaxis_constraintoward
+      :constraintoward => pl.yaxis_constraintoward,
+      :autorange => pl.yaxis_autorange,
+      :rangemode => pl.yaxis_rangemode,
+      :fixedrange => pl.yaxis_fixedrange,
+      :type => pl.yaxis_type,
+      :autotypenumbers => pl.yaxis_autotypenumbers,
+      :tickformat => pl.yaxis_tickformat
     ),
 
     :showlegend => pl.showlegend,
@@ -745,8 +784,8 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :autoexpand => pl.margin_autoexpand
     ),
     :autosize => pl.autosize,
-    :width => pl.width,
-    :height => pl.height,
+    # :width => pl.width,
+    # :height => pl.height,
     :font => Dict(
       :family => pl.font.family,
       :size => pl.font.size,
@@ -761,7 +800,37 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
     :plot_bgcolor => pl.plot_bgcolor
   )
 
-  pl.legend_bgcolor !== nothing && (layout[:legend_bgcolor] = pl.legend_bgcolor)
+  (pl.legend_bgcolor !== nothing) && (layout[:legend_bgcolor] = pl.legend_bgcolor)
+  (pl.width !== nothing) && (layout[:width] = pl.width)
+  (pl.height !== nothing) && (layout[:height] = pl.height)
+
+  (pl.xaxis_range !== nothing) && (layout[:xaxis][:range] = pl.xaxis_range)
+  if pl.xaxis_tickmode == "linear"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:tick0] = pl.xaxis_tick0
+    layout[:xaxis][:dtick] = pl.xaxis_dtick
+  elseif pl.xaxis_tickmode == "array"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:tickvals] = pl.xaxis_tickvals
+    layout[:xaxis][:ticktext] = pl.xaxis_ticktext
+  elseif pl.xaxis_tickmode == "auto"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:nticks] = pl.xaxis_nticks
+  end
+
+  (pl.yaxis_range !== nothing) && (layout[:yaxis][:range] = pl.yaxis_range)
+  if pl.yaxis_tickmode == "linear"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:tick0] = pl.yaxis_tick0
+    layout[:yaxis][:dtick] = pl.yaxis_dtick
+  elseif pl.yaxis_tickmode == "array"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:tickvals] = pl.yaxis_tickvals
+    layout[:yaxis][:ticktext] = pl.yaxis_ticktext
+  elseif pl.yaxis_tickmode == "auto"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:nticks] = pl.yaxis_nticks
+  end
 
   layout
 end

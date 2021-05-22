@@ -1,5 +1,4 @@
 using Genie, Genie.Renderer.Html, Stipple, StipplePlotly, Colors, ColorSchemes
-# using StippleCharts, Plots
 
 Genie.config.log_requests = false
 
