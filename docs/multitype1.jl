@@ -11,6 +11,8 @@ xexperiment = (0.0:(2π/10):2π) .+ 3 .* dxmeasured .* (rand(Float64,11) .- 0.5)
 dx = dxmeasured .* ones(Float64, size(xexperiment))
 yexperiment = sin.(xexperiment) .+ 3 .* dymeasured .* (rand(Float64,size(xexperiment)) .- 0.5)
 dy = dymeasured .* ones(Float64, size(yexperiment))
+# create outlier:
+yexperiment[6] = 0.5
 
 pd_line(name, xar) = PlotData(
   x = xar,
@@ -44,9 +46,8 @@ pl() = PlotLayout(
   yaxis_zeroline = false,
   xaxis_zeroline = false,
   xaxis_mirror = "all",
-  yaxis_mirror = "all"
-  # height = nothing,
-  # width = nothing
+  yaxis_mirror = "all",
+  annotations = [PlotAnnotation(visible=true, x=xexperiment[6], y=yexperiment[6], text="possible outlier")]
 )
 
 Base.@kwdef mutable struct Model <: ReactiveModel
