@@ -5,7 +5,7 @@ import Genie.Renderer.Html: HTMLString, normal_element
 
 using Stipple
 
-export PlotLayout, PlotData, Trace, plot, ErrorBar, Font, ColorBar
+export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
@@ -127,6 +127,105 @@ Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.col
 
 Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
 
+#===#
+
+Base.@kwdef mutable struct PlotAnnotation
+  visible::Union{Bool,Nothing} = nothing
+  text::Union{String,Nothing} = nothing
+  textangle::Union{Float64,Int,Nothing} = nothing
+  font::Union{Font,Nothing} = nothing
+  width::Union{Float64,Int,Nothing} = nothing
+  height::Union{Float64,Int,Nothing} = nothing
+  opacity::Union{Float64,Nothing} = nothing
+  align::Union{String,Nothing} = nothing
+  valign::Union{String,Nothing} = nothing
+  bgcolor::Union{String,Nothing} = nothing
+  bordercolor::Union{String,Nothing} = nothing
+  borderpad::Union{Int,Nothing} = nothing
+  borderwidth::Union{Int,Nothing} = nothing
+  showarrow::Union{Bool,Nothing} = nothing
+  arrowcolor::Union{String,Nothing} = nothing
+  arrowhead::Union{Int,Nothing} = nothing
+  startarrowhead::Union{Int,Nothing} = nothing
+  arrowside::Union{String,Nothing} = nothing
+  arrowsize::Union{Float64,Nothing} = nothing
+  startarrowsize::Union{Float64,Nothing} = nothing
+  arrowwidth::Union{Float64,Nothing} = nothing
+  standoff::Union{Int,Nothing} = nothing
+  startstandoff::Union{Int,Nothing} = nothing
+  ax::Union{String,Int,Float64,Nothing} = nothing
+  ay::Union{String,Int,Float64,Nothing} = nothing
+  axref::Union{String,Nothing} = nothing
+  ayref::Union{String,Nothing} = nothing
+  xref::Union{String,Int,Float64,Nothing} = nothing
+  x::Union{String,Int,Float64,Nothing} = nothing
+  xanchor::Union{String,Nothing} = nothing
+  xshift::Union{Int,Float64,Nothing} = nothing
+  yref::Union{String,Int,Float64,Nothing} = nothing
+  y::Union{String,Int,Float64,Nothing} = nothing
+  yanchor::Union{String,Nothing} = nothing
+  yshift::Union{Int,Float64,Nothing} = nothing
+  # TODO: clicktoshow
+  # TODO: xclick
+  # TODO: yclick
+  hoverlabel::Union{Dict,Nothing} = nothing
+  captureevents::Union{Bool,Nothing} = nothing
+  name::Union{String,Nothing} = nothing
+  templateitemname::Union{String,Nothing} = nothing
+end
+
+function Base.show(io::IO, an::PlotAnnotation)
+  output = "Annotation: \n"
+  for f in fieldnames(typeof(an))
+    prop = getproperty(an, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(output)
+end
+
+function Base.Dict(an::PlotAnnotation)
+  trace = Dict{Symbol,Any}()
+
+  if an.font !== nothing
+    trace[:font] = Dict(
+      :family => an.font.family,
+      :size => an.font.size,
+      :color => an.font.color
+    )
+  end
+
+  if an.hoverlabel !== nothing
+    trace[:hoverlabel] = an.hoverlabel
+  end
+
+  optionals!(trace, an, [:visible, :text, :textangle, :width, :height, :opacity,
+          :align, :valign, :bgcolor, :bordercolor, :borderpad, :borderwidth, :showarrow,
+          :arrowcolor, :arrowhead, :startarrowhead, :arrowside, :arrowsize, :startarrowsize,
+          :arrowwidth, :standoff, :startstandoff, :ax, :ay, :axref, :ayref, :xref, :x,
+          :xanchor, :xshift, :yref, :y, :yanchor, :yshift, :captureevents, :name, :templateitemname])
+
+end
+
+function optionals!(d::Dict, an::PlotAnnotation, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(an, o) !== nothing
+      d[o] = getproperty(an, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(an) for an in anv]
+end
+
+
+#===#
+
 Base.@kwdef mutable struct PlotLayout
   title_text::String = ""
   title_font::Font = Font()
@@ -161,6 +260,19 @@ Base.@kwdef mutable struct PlotLayout
   xaxis_scaleratio::Int = 1
   xaxis_constrain::String = "domain"
   xaxis_constraintoward::String = "center"
+  xaxis_autorange::Union{Bool,String} = true
+  xaxis_rangemode::String = "normal"
+  xaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  xaxis_fixedrange::Bool = false
+  xaxis_type::String = "-"
+  xaxis_autotypenumbers::String = "convert types"
+  xaxis_tickmode::Union{String,Nothing} = nothing
+  xaxis_nticks::Int = 0
+  xaxis_tick0::Union{Float64,Int,String} = 0
+  xaxis_dtick::Union{Float64,Int,String} = 1
+  xaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
+  xaxis_ticktext::Vector{String} = String[]
+  xaxis_tickformat::String = ""
 
   yaxis_text::String = "y-axis"
   yaxis_font::Font = Font()
@@ -182,6 +294,19 @@ Base.@kwdef mutable struct PlotLayout
   yaxis_scaleratio::Int = 1
   yaxis_constrain::String = "domain"
   yaxis_constraintoward::String = "center"
+  yaxis_autorange::Union{Bool,String} = true
+  yaxis_rangemode::String = "normal"
+  yaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  yaxis_fixedrange::Bool = false
+  yaxis_type::String = "-"
+  yaxis_autotypenumbers::String = "convert types"
+  yaxis_tickmode::Union{String,Nothing} = nothing
+  yaxis_nticks::Int = 0
+  yaxis_tick0::Union{Float64,Int,String} = 0
+  yaxis_dtick::Union{Float64,Int,String} = 1
+  yaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
+  yaxis_ticktext::Vector{String} = String[]
+  yaxis_tickformat::String = ""
 
   showlegend::Bool = true
   legend_bgcolor::Union{String,Nothing} = nothing
@@ -211,8 +336,8 @@ Base.@kwdef mutable struct PlotLayout
   margin_pad::Int = 0
   margin_autoexpand::Bool = true
   autosize::Bool = true
-  width::Int = 700
-  height::Int = 450
+  width::Union{Int,Nothing} = nothing #700
+  height::Union{Int,Nothing} = nothing #450
   font::Font = Font()
   uniformtext_mode::Union{String,Bool} = false
   uniformtext_minsize::Int = 0
@@ -299,6 +424,7 @@ Base.@kwdef mutable struct PlotLayout
   extendsunburstcolors::Bool = true
   # TODO: treemapcolorway
   extendtreemapcolors::Bool = true
+  annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
 end
 
 function Base.show(io::IO, l::PlotLayout)
@@ -539,6 +665,7 @@ function Base.show(io::IO, pd::PlotData)
   print(output)
 end
 
+
 #===#
 
 function Base.Dict(pd::PlotData)
@@ -624,6 +751,11 @@ function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} 
   [Dict(pd) for pd in pdv]
 end
 
+
+
+#===#
+
+
 function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
   layout = Dict(
     :title => Dict(
@@ -673,7 +805,13 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :scaleanchor => pl.xaxis_scaleanchor,
       :scaleratio => pl.xaxis_scaleratio,
       :constrain => pl.xaxis_constrain,
-      :constraintoward => pl.xaxis_constraintoward
+      :constraintoward => pl.xaxis_constraintoward,
+      :autorange => pl.xaxis_autorange,
+      :rangemode => pl.xaxis_rangemode,
+      :fixedrange => pl.xaxis_fixedrange,
+      :type => pl.xaxis_type,
+      :autotypenumbers => pl.xaxis_autotypenumbers,
+      :tickformat => pl.xaxis_tickformat
     ),
 
     :yaxis => Dict(
@@ -703,7 +841,13 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :scaleratio => pl.yaxis_scaleratio,
       :scaleratio => pl.yaxis_scaleratio,
       :constrain => pl.yaxis_constrain,
-      :constraintoward => pl.yaxis_constraintoward
+      :constraintoward => pl.yaxis_constraintoward,
+      :autorange => pl.yaxis_autorange,
+      :rangemode => pl.yaxis_rangemode,
+      :fixedrange => pl.yaxis_fixedrange,
+      :type => pl.yaxis_type,
+      :autotypenumbers => pl.yaxis_autotypenumbers,
+      :tickformat => pl.yaxis_tickformat
     ),
 
     :showlegend => pl.showlegend,
@@ -745,8 +889,8 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
       :autoexpand => pl.margin_autoexpand
     ),
     :autosize => pl.autosize,
-    :width => pl.width,
-    :height => pl.height,
+    # :width => pl.width,
+    # :height => pl.height,
     :font => Dict(
       :family => pl.font.family,
       :size => pl.font.size,
@@ -761,7 +905,41 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
     :plot_bgcolor => pl.plot_bgcolor
   )
 
-  pl.legend_bgcolor !== nothing && (layout[:legend_bgcolor] = pl.legend_bgcolor)
+  (pl.legend_bgcolor !== nothing) && (layout[:legend_bgcolor] = pl.legend_bgcolor)
+  (pl.width !== nothing) && (layout[:width] = pl.width)
+  (pl.height !== nothing) && (layout[:height] = pl.height)
+
+  (pl.xaxis_range !== nothing) && (layout[:xaxis][:range] = pl.xaxis_range)
+  if pl.xaxis_tickmode == "linear"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:tick0] = pl.xaxis_tick0
+    layout[:xaxis][:dtick] = pl.xaxis_dtick
+  elseif pl.xaxis_tickmode == "array"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:tickvals] = pl.xaxis_tickvals
+    layout[:xaxis][:ticktext] = pl.xaxis_ticktext
+  elseif pl.xaxis_tickmode == "auto"
+    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
+    layout[:xaxis][:nticks] = pl.xaxis_nticks
+  end
+
+  (pl.yaxis_range !== nothing) && (layout[:yaxis][:range] = pl.yaxis_range)
+  if pl.yaxis_tickmode == "linear"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:tick0] = pl.yaxis_tick0
+    layout[:yaxis][:dtick] = pl.yaxis_dtick
+  elseif pl.yaxis_tickmode == "array"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:tickvals] = pl.yaxis_tickvals
+    layout[:yaxis][:ticktext] = pl.yaxis_ticktext
+  elseif pl.yaxis_tickmode == "auto"
+    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
+    layout[:yaxis][:nticks] = pl.yaxis_nticks
+  end
+
+  if pl.annotations !== nothing
+    layout[:annotations] = Dict.(pl.annotations)
+  end
 
   layout
 end
