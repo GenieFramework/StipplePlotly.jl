@@ -76,6 +76,9 @@ Vue.component('plotly', {
     layout: {
       type: Object
     },
+    config: {
+      type: Object
+    },
     id: {
       type: String,
       required: false,
@@ -85,7 +88,8 @@ Vue.component('plotly', {
   data() {
     return {
       scheduled: null,
-      innerLayout: { ...this.layout }
+      innerLayout: { ...this.layout },
+      options: { ...this.config }
     };
   },
   mounted() {
@@ -102,30 +106,13 @@ Vue.component('plotly', {
       },
       deep: true
     },
-    options: {
-      handler(value, old) {
-        if (JSON.stringify(value) === JSON.stringify(old)) {
-          return;
-        }
-        this.schedule({ replot: true });
-      },
-      deep: true
-    },
     layout(layout) {
       this.innerLayout = { ...layout };
       this.schedule({ replot: false });
-    }
-  },
-  computed: {
-    options() {
-      const optionsFromAttrs = Object.keys(this.$attrs).reduce((acc, key) => {
-        acc[camelize(key)] = this.$attrs[key];
-        return acc;
-      }, {});
-      return {
-        responsive: false,
-        ...optionsFromAttrs
-      };
+    },
+    config(config) {
+      this.options = { ...config };
+      this.schedule({ replot: false });
     }
   },
   beforeDestroy() {

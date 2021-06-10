@@ -4,18 +4,6 @@ Genie.config.log_requests = false
 
 plotly_palette = ["Greys", "YlGnBu", "Greens", "YlOrRd", "Bluered", "RdBu", "Reds", "Blues", "Picnic", "Rainbow", "Portland", "Jet", "Hot", "Blackbody", "Earth", "Electric", "Viridis", "Cividis"]
 
-"""
-Plotly:
-  Map missing, nothing, NaN, -Inf and Inf in a string "null".
-  JSON.json maps those on null without quoutes. Call-back error occors on front-end when you write new data (as in model[].z)
-  Strings are interpreted as numbers.
-
-  Colorscale:
-    rgb triplets are strings on front-end side.
-    rgb(r,g,b) triplets: r, g and b are integers from 0 to 255, or floats from 0.0 to 1.0.
-    Floats must have a decimal for correct interpretation by Plotly.
-"""
-
 function rgb(pix::RGB{Float64})
   R = round(Int, 255 * clamp(pix.r, 0.0, 1.0))
   G = round(Int, 255 * clamp(pix.g, 0.0, 1.0))
@@ -68,37 +56,40 @@ pd(name) = PlotData(
 
 pl(title) = PlotLayout(
   plot_bgcolor = "#FFFFFF",
-  title_text = title,
+  title = PlotLayoutTitle(text=title, font=Font(24)),
   margin_b = 25,
   margin_t = 80,
-  margin_l = 40,
+  margin_l = 80,
   margin_r = 40,
-  xaxis_text = "From",
-  xaxis_font = Font(18),
-  xaxis_ticks = "outside top",
-  xaxis_side = "top",
-  xaxis_position = 1.0,
-  xaxis_showline = true,
-  xaxis_showgrid = false,
-  xaxis_zeroline = false,
-  xaxis_mirror = "all",
-  xaxis_ticklabelposition = "outside top",
-  yaxis_showline = true,
-  yaxis_zeroline = false,
-  yaxis_mirror = "all",
-  yaxis_showgrid = false,
-  yaxis_text = "To",
-  yaxis_font = Font(18),
-  yaxis_ticks = "outside",
-  yaxis_scaleanchor = "x",
-  yaxis_scaleratio = 1,
-  yaxis_constrain = "domain",
-  yaxis_constraintoward = "top"
+  xaxis = [PlotLayoutAxis(xy = "x", index = 1,
+    title = "From",
+    font = Font(18),
+    ticks = "outside top",
+    side = "top",
+    position = 1.0,
+    showline = true,
+    showgrid = false,
+    zeroline = false,
+    mirror = "all",
+    ticklabelposition = "outside top")],
+  yaxis = [PlotLayoutAxis(xy = "y", index = 1,
+    showline = true,
+    zeroline = false,
+    mirror = "all",
+    showgrid = false,
+    title = "To",
+    font = Font(18),
+    ticks = "outside",
+    scaleanchor = "x",
+    scaleratio = 1,
+    constrain = "domain",
+    constraintoward = "top")],
 )
 
 Base.@kwdef mutable struct Model <: ReactiveModel
   data::R{Vector{PlotData}} = [pd("Random 1")], READONLY
   layout::R{PlotLayout} = pl(""), READONLY
+  config::R{PlotConfig} = PlotConfig(), READONLY
 end
 
 model = Stipple.init(Model())
@@ -106,7 +97,7 @@ model = Stipple.init(Model())
 function ui()
   page(
     vm(model), class="container", [
-      plot(:data, layout = :layout)
+      plot(:data, layout = :layout, config = :config)
     ]
   ) |> html
 end

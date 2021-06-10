@@ -34,25 +34,32 @@ pd_scatter(name, xar, dx, yar, dy) = PlotData(
 
 pl() = PlotLayout(
   plot_bgcolor = "#FFFFFF",
-  title_text = "Wave",
+  title = PlotLayoutTitle(text="Wave", font=Font(24)),
+  legend = PlotLayoutLegend(bgcolor = "rgb(212,212,212)", font=Font(6)),
   hovermode = "closest",
   showlegend = true,
-  xaxis_text = "time (s)",
-  yaxis_text = "displacement (mm)",
-  yaxis_ticks = "outside",
-  xaxis_ticks = "outside",
-  xaxis_showline = true,
-  yaxis_showline = true,
-  yaxis_zeroline = false,
-  xaxis_zeroline = false,
-  xaxis_mirror = "all",
-  yaxis_mirror = "all",
+  xaxis = [PlotLayoutAxis(xy="x", index=1,
+    title = "time (s)",
+    ticks = "outside",
+    tickfont = Font(size=24, color="#FF00FF"),
+    showline = true,
+    zeroline = false,
+    mirror = true
+  )],
+  yaxis = [PlotLayoutAxis(xy="y", index=1,
+    showline = true,
+    zeroline = false,
+    title = "displacement (mm)",
+    ticks = "outside",
+    mirror = true
+  )],
   annotations = [PlotAnnotation(visible=true, x=xexperiment[6], y=yexperiment[6], text="possible outlier")]
 )
 
 Base.@kwdef mutable struct Model <: ReactiveModel
   data::R{Vector{PlotData}} = [pd_line("Sinus", xrange), pd_scatter("Experiment", xexperiment, dx, yexperiment, dy)]
   layout::R{PlotLayout} = pl()
+  config::R{PlotConfig} = PlotConfig()
 end
 
 model = Stipple.init(Model())
@@ -60,7 +67,7 @@ model = Stipple.init(Model())
 function ui()
   page(
     vm(model), class="container", [
-        plot(:data, layout = :layout)
+        plot(:data, layout = :layout, config = :config)
     ]
   ) |> html
 end

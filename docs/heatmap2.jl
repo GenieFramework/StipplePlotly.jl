@@ -89,38 +89,41 @@ pd(name, x, y, z; zmin = 0.0, zmax = 100.0, cs = cs) = PlotData(
 
 pl(title; annotations::Union{Nothing, Vector{PlotAnnotation}} = nothing) = PlotLayout(
   plot_bgcolor = "#FFFFFF",
-  title_text = title,
+  title = PlotLayoutTitle(text=title, font=Font(24)),
   margin_b = 25,
   margin_t = 80,
-  margin_l = 40,
+  margin_l = 60,
   margin_r = 40,
-  xaxis_text = "From",
-  xaxis_font = Font(18),
-  xaxis_ticks = "outside top",
-  xaxis_side = "top",
-  xaxis_position = 1.0,
-  xaxis_showline = true,
-  xaxis_showgrid = false,
-  xaxis_zeroline = false,
-  xaxis_mirror = "all",
-  xaxis_ticklabelposition = "outside top",
-  yaxis_showline = true,
-  yaxis_zeroline = false,
-  yaxis_mirror = "all",
-  yaxis_showgrid = false,
-  yaxis_text = "To",
-  yaxis_font = Font(18),
-  yaxis_ticks = "outside",
-  yaxis_scaleanchor = "x",
-  yaxis_scaleratio = 1,
-  yaxis_constrain = "domain",
-  yaxis_constraintoward = "top",
+  xaxis = [PlotLayoutAxis(xy = "x", index = 1,
+    title = "From",
+    font = Font(18),
+    ticks = "outside top",
+    side = "top",
+    position = 1.0,
+    showline = true,
+    showgrid = false,
+    zeroline = false,
+    mirror = "all",
+    ticklabelposition = "outside top")],
+  yaxis = [PlotLayoutAxis(xy = "y", index = 1,
+    showline = true,
+    zeroline = false,
+    mirror = "all",
+    showgrid = false,
+    title = "To",
+    font = Font(18),
+    ticks = "outside",
+    scaleanchor = "x",
+    scaleratio = 1,
+    constrain = "domain",
+    constraintoward = "top")],
   annotations = annotations
 )
 
 Base.@kwdef mutable struct Model <: ReactiveModel
   data::R{Vector{PlotData}} = [pd("Random 1", xx, yy, zz)], READONLY
   layout::R{PlotLayout} = pl(""; annotations=anv), READONLY
+  config::R{PlotConfig} = PlotConfig(), READONLY
 end
 
 model = Stipple.init(Model())
@@ -128,7 +131,7 @@ model = Stipple.init(Model())
 function ui()
   page(
     vm(model), class="container", [
-      plot(:data, layout = :layout)
+      plot(:data, layout = :layout, config = :config)
     ]
   ) |> html
 end
