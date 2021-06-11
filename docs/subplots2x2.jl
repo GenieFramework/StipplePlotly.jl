@@ -10,22 +10,22 @@ xxs = -3.0:0.2:3.0
 
 pl1 = PlotData(
     x = xx, y = sin.(xx), plot = StipplePlotly.Charts.PLOT_TYPE_SCATTER,
-    name = "sine", mode = "lines", xaxis = "x", yaxis = "y", line = PlotDataLine(color = "rgb(0,0,192)", dash="solid")
+    name = "sine", mode = "lines", xaxis = "x", yaxis = "y", line = PlotlyLine(color = "rgb(0,0,192)", dash="solid")
 )
 
 pl2 = PlotData(
     x = xx, y = sinh.(xx), plot = StipplePlotly.Charts.PLOT_TYPE_SCATTER,
-    name = "sinh", mode = "lines", xaxis = "x2", yaxis = "y2", line = PlotDataLine(color = "rgb(0,192,0)", dash="dot")
+    name = "sinh", mode = "lines", xaxis = "x2", yaxis = "y2", line = PlotlyLine(color = "rgb(0,192,0)", dash="dot")
 )
 
 pl3 = PlotData(
     x = xx, y = cos.(xx), plot = StipplePlotly.Charts.PLOT_TYPE_SCATTER,
-    name = "cosine", mode = "lines", xaxis = "x3", yaxis = "y3", line = PlotDataLine(color = "rgb(192,0,0)", dash="dash")
+    name = "cosine", mode = "lines", xaxis = "x3", yaxis = "y3", line = PlotlyLine(color = "rgb(192,0,0)", dash="dash")
 )
 
 pl4 = PlotData(
     x = xx, y = cosh.(xx), plot = StipplePlotly.Charts.PLOT_TYPE_SCATTER,
-    name = "cosh", mode = "lines", xaxis = "x4", yaxis = "y4", line = PlotDataLine(color = "rgb(192,0,192)", dash="dashdot")
+    name = "cosh", mode = "lines", xaxis = "x4", yaxis = "y4", line = PlotlyLine(color = "rgb(192,0,192)", dash="dashdot")
 )
 
 ps1 = PlotData(

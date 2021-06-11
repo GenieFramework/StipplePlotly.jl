@@ -7,7 +7,7 @@ using Stipple
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
-export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotDataLine, PlotDataMarker
+export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
@@ -76,57 +76,179 @@ function Font(fontsize::Union{Int,Float64})
   return fs
 end
 
-function ColorBar(text, title_font_size::Union{Int,Float64}, side)
-  Dict(
-    :title => Dict(
-      :text => text,
-      :font => Font(title_font_size),
-      :side => side
-    )
-  )
-end
-
-function ErrorBar(error_array::Vector)
-  Dict(
-    :type => "data",
-    :array => error_array,
-    :visible => true,
-    :symmetric => true
-  )
-end
-
-function ErrorBar(error_array::Vector, error_arrayminus::Vector)
-  Dict(
-    :type => "data",
-    :array => error_array,
-    :arrayminus => error_arrayminus,
-    :visible => true,
-    :symmetric => false
-  )
-end
-
-function ErrorBar(error_value::Number)
-  Dict(
-    :type => "percent",
-    :value => error_value,
-    :visible => true,
-    :symmetric => true
-  )
-end
-
-function ErrorBar(error_value::Number, error_valueminus::Number)
-  Dict(
-    :type => "percent",
-    :value => error_value,
-    :valueminus => error_valueminus,
-    :visible => true,
-    :symmetric => false
-  )
-end
-
 Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
 
 Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
+
+#===#
+
+Base.@kwdef mutable struct ColorBar
+  thicknessmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is pixels
+  thickness::Union{Int,Nothing} = nothing # 30
+  lenmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is fraction
+  len::Union{Float64,Int,Nothing} = nothing # 1
+  x::Union{Float64,Nothing} = nothing # 1.02
+  xanchor::Union{String,Nothing} = nothing # "left" | "center" | "right", default is left
+  xpad::Union{Int,Nothing} = nothing # 10
+  yanchor::Union{String,Nothing} = nothing # "top" | "middle" | "bottom", default is middle
+  ypad::Union{Int,Nothing} = nothing # 10
+  outlinecolor::Union{String,Nothing} = nothing # "#444"
+  bordercolor::Union{String,Nothing} = nothing # "#444"
+  borderwidth::Union{Int,Nothing} = nothing # 0
+  bgcolor::Union{String,Nothing} = nothing # "rgba(0,0,0,0)"
+  tickmode::Union{String,Nothing} = nothing
+  nticks::Union{Int,Nothing} = nothing
+  tick0::Union{Float64,Int,String,Nothing} = nothing
+  dtick::Union{Float64,Int,String,Nothing} = nothing
+  tickvals::Union{Vector{Float64},Vector{Int},Nothing} = nothing
+  ticktext::Union{Vector{String},Nothing} = nothing
+  ticks::Union{String,Nothing} = nothing # "outside" | "inside" | ""
+  ticklabelposition::Union{String,Nothing} = nothing # "outside" | "inside" | "outside top" | "inside top" | "outside bottom" | "inside bottom", default is outside
+  ticklen::Union{Int,Nothing} = nothing # 5
+  tickwidth::Union{Int,Nothing} = nothing # 1
+  tickcolor::Union{String,Nothing} = nothing # "#444"
+  showticklabels::Union{Bool,Nothing} = nothing # true
+  tickfont::Union{Font,Nothing} = nothing
+  tickangle::Union{String,Int,Float64,Nothing} = nothing
+  tickformat::Union{String,Nothing} = nothing
+  tickformatstops::Union{Dict,Nothing} = nothing
+  tickprefix::Union{String,Nothing} = nothing
+  showtickprefix::Union{String,Nothing} = nothing # "all" | "first" | "last" | "none", default is all
+  ticksuffix::Union{String,Nothing} = nothing
+  showticksuffix::Union{String,Nothing} = nothing # "all" | "first" | "last" | "none",
+  separatethousands::Union{Bool,Nothing} = nothing
+  exponentformat::Union{String,Nothing} = nothing # none" | "e" | "E" | "power" | "SI" | "B", default is B
+  minexponent::Union{Int,Nothing} = nothing
+  showexponent::Union{String,Nothing} = nothing
+  # needs special treatment:
+  title_text::Union{String,Nothing} = nothing # ""
+  title_font::Union{Font,Nothing} = nothing # Font()
+  title_side::Union{String,Nothing} = nothing # LAYOUT_LEFT
+end
+
+function Base.show(io::IO, cb::ColorBar)
+  output = "ColorBar: \n"
+  for f in fieldnames(typeof(cb))
+    prop = getproperty(cb, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(cb::ColorBar)
+  trace = Dict{Symbol, Any}()
+
+  d = Dict{Symbol, Any}()
+  (cb.title_text !== nothing) && (d[:text] = cb.title_text)
+  (cb.title_font !== nothing) && (d[:font] = cb.title_font)
+  (cb.title_side !== nothing) && (d[:side] = cb.title_side)
+  (length(d) > 0) && (trace[:title] = d)
+
+  optionals!(trace, cb, [
+    :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor, :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition, :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix, :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
+  ])
+end
+
+function optionals!(d::Dict, cb::ColorBar, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(cb, o) !== nothing
+      d[o] = getproperty(cb, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(cb::ColorBar, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(cb)
+end
+
+function ColorBar(text, title_font_size::Union{Int,Float64}, side)
+  cb = ColorBar()
+  cb.title_text = text
+  cb.title_font = Font(title_font_size)
+  cb.title_side = side
+  cb
+end
+
+#===#
+
+Base.@kwdef mutable struct ErrorBar
+  visible::Union{Bool,Nothing} = nothing
+  type::Union{String,Nothing} = nothing # "percent" | "constant" | "sqrt" | "data"
+  symmetric::Union{Bool,Nothing} = nothing
+  array::Union{Vector{Float64},Nothing} = nothing
+  arrayminus::Union{Vector{Float64},Nothing} = nothing
+  value::Union{Float64,Nothing} = nothing # 10
+  valueminus::Union{Float64,Nothing} = nothing # 10
+  traceref::Union{Int,Nothing} = nothing # 0
+  tracerefminus::Union{Int,Nothing} = nothing # 0
+  copy_ystyle::Union{Bool,Nothing} = nothing
+  color::Union{String,Nothing} = nothing
+  thickness::Union{Int,Nothing} = nothing # 2
+  width::Union{Int,Nothing} = nothing # 0
+end
+
+function Base.show(io::IO, eb::ErrorBar)
+  output = "Errorbar: \n"
+  for f in fieldnames(typeof(eb))
+    prop = getproperty(eb, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function ErrorBar(error_array::Vector; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, array=error_array, type="data", symmetric=true)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_array::Vector, error_arrayminus::Vector; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, array=error_array, type="data", symmetric=false, arrayminus=error_arrayminus)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_value::Number; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, value=error_value, type="percent", symmetric=true)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_value::Number, error_valueminus::Number; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, value=error_value, type="percent", symmetric=false, valueminus=error_valueminus)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function Base.Dict(eb::ErrorBar)
+  trace = Dict{Symbol, Any}()
+
+  optionals!(trace, eb, [
+    :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus, :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
+  ])
+end
+
+function optionals!(d::Dict, eb::ErrorBar, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(eb, o) !== nothing
+      d[o] = getproperty(eb, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(eb::ErrorBar, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(eb)
+end
 
 #===#
 
@@ -582,10 +704,10 @@ Base.@kwdef mutable struct PlotLayout
   activeshape_fillcolor::String = "rgb(255,0,255)"
   activeshape_opacity::Float64 = 0.5
   # TODO: hidesources
-  barmode::String = LAYOUT_GROUP
-  barnorm::String = ""
-  bargap::Float64 = 0.5
-  bargroupgap::Float64 = 0
+  barmode::Union{String,Nothing} = nothing # LAYOUT_GROUP
+  barnorm::Union{String,Nothing} = nothing
+  bargap::Union{Float64,Nothing} = nothing # 0.5
+  bargroupgap::Union{Float64,Nothing} = nothing # 0
   # TODO: hiddenlabels
   # TODO: piecolorway
   extendpiecolors::Bool = true
@@ -624,16 +746,29 @@ end
 
 #===#
 
-Base.@kwdef mutable struct PlotDataLine
+Base.@kwdef mutable struct PlotlyLine
+  # for all Plotly lines:
   color::Union{String,Nothing} = nothing
   width::Union{Int,Nothing} = nothing # 2
+  # Scatter - line:
   shape::Union{String,Nothing} = nothing # "linear" | "spline" | "hv" | "vh" | "hvh" | "vhv"
   smoothing::Union{Float64,String,Nothing} = nothing
   dash::Union{String,Nothing} = nothing # "solid", "dot", "dash", "longdash", "dashdot", "longdashdot" or "5px,10px,2px,2px"
   simplify::Union{Bool,Nothing} = nothing
+  # Scatter - marker - line:
+  cauto::Union{Bool,Nothing} = nothing
+  cmin::Union{Float64,Nothing} = nothing
+  cmax::Union{Float64,Nothing} = nothing
+  cmid::Union{Float64,Nothing} = nothing
+  colorscale::Union{Matrix,String,Nothing} = nothing
+  autocolorscale::Union{Bool,Nothing} = nothing
+  reversescale::Union{Bool,Nothing} = nothing
+  # Box - marker - line
+  outliercolor::Union{String,Nothing} = nothing
+  outlierwidth::Union{Int,Nothing} = nothing # 1
 end
 
-function Base.show(io::IO, pdl::PlotDataLine)
+function Base.show(io::IO, pdl::PlotlyLine)
   output = "Layout Legend: \n"
   for f in fieldnames(typeof(pdl))
     prop = getproperty(pdl, f)
@@ -645,13 +780,13 @@ function Base.show(io::IO, pdl::PlotDataLine)
   print(io, output)
 end
 
-function Base.Dict(pdl::PlotDataLine)
+function Base.Dict(pdl::PlotlyLine)
   trace = Dict{Symbol, Any}()
 
-  optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify])
+  optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale, :reversescale, :outliercolor, :outlierwidth])
 end
 
-function optionals!(d::Dict, pdl::PlotDataLine, opts::Vector{Symbol}) :: Dict
+function optionals!(d::Dict, pdl::PlotlyLine, opts::Vector{Symbol}) :: Dict
   for o in opts
     if getproperty(pdl, o) !== nothing
       d[o] = getproperty(pdl, o)
@@ -661,7 +796,7 @@ function optionals!(d::Dict, pdl::PlotDataLine, opts::Vector{Symbol}) :: Dict
   d
 end
 
-function Stipple.render(pdl::PlotDataLine, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pdl)
 end
 
@@ -675,7 +810,7 @@ Base.@kwdef mutable struct PlotDataMarker
   sizeref::Union{Float64,Nothing} = nothing
   sizemin::Union{Float64,Nothing} = nothing
   sizemode::Union{String,Nothing} = nothing
-  # TODO: line
+  line::Union{PlotlyLine,Nothing} = nothing
   # TODO: gradient
   color::Union{String,Vector{Float64},Nothing} = nothing
   cauto::Union{Bool,Nothing} = nothing
@@ -686,8 +821,10 @@ Base.@kwdef mutable struct PlotDataMarker
   autocolorscale::Union{Bool,Nothing} = nothing
   reversescale::Union{Bool,Nothing} = nothing
   showscale::Union{Bool,Nothing} = nothing
-  # TODO: colorbar
+  colorbar::Union{ColorBar,Nothing} = nothing
   coloraxis::Union{String,Nothing} = nothing
+  # Specific for Pie charts:
+  colors::Union{Vector{String},Nothing} = nothing
 end
 
 function Base.show(io::IO, pdm::PlotDataMarker)
@@ -704,10 +841,12 @@ end
 
 function Base.Dict(pdm::PlotDataMarker)
   trace = Dict{Symbol, Any}()
+  (pdm.line !== nothing) && (trace[:line] = Dict(pdm.line))
+  (pdm.colorbar !== nothing) && (trace[:colorbar] = Dict(pdm.colorbar))
 
   optionals!(trace, pdm, [:symbol, :opacity, :size, :maxdisplayed, :sizeref, :sizemin,
       :sizemode, :color, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale,
-      :reversescale, :showscale, :coloraxis])
+      :reversescale, :showscale, :coloraxis, :colors])
 end
 
 function optionals!(d::Dict, pdm::PlotDataMarker, opts::Vector{Symbol}) :: Dict
@@ -756,7 +895,7 @@ Base.@kwdef mutable struct PlotData
   cmin::Union{Float64,Int,Nothing} = nothing
   color::Union{String,Nothing} = nothing
   coloraxis::Union{String,Nothing} = nothing
-  colorbar::Union{Dict,Nothing} = nothing
+  colorbar::Union{Dict,ColorBar,Nothing} = nothing
   colorscale::Union{Matrix,String,Nothing} = nothing
   columnorder::Union{Vector,Nothing} = nothing
   columnwidth::Union{Float64,Int,Vector,Nothing} = nothing
@@ -775,9 +914,9 @@ Base.@kwdef mutable struct PlotData
   domain::Union{Dict,Nothing} = nothing
   dx::Union{Int,Nothing} = nothing
   dy::Union{Int,Nothing} = nothing
-  error_x::Union{Dict,Nothing} = nothing
-  error_y::Union{Dict,Nothing} = nothing
-  error_z::Union{Dict,Nothing} = nothing
+  error_x::Union{Dict,ErrorBar,Nothing} = nothing
+  error_y::Union{Dict,ErrorBar,Nothing} = nothing
+  error_z::Union{Dict,ErrorBar,Nothing} = nothing
   facecolor::Union{Vector,Nothing} = nothing
   fill::Union{String,Nothing} = nothing
   fillcolor::Union{String,Nothing} = nothing
@@ -814,7 +953,7 @@ Base.@kwdef mutable struct PlotData
   legendgroup::Union{String,Nothing} = nothing
   lighting::Union{Dict,Nothing} = nothing
   lightposition::Union{Dict,Nothing} = nothing
-  line::Union{Dict,PlotDataLine,Nothing} = nothing
+  line::Union{Dict,PlotlyLine,Nothing} = nothing
   low::Union{Vector,Nothing} = nothing
   lowerfence::Union{Vector,Nothing} = nothing
   marker::Union{Dict,PlotDataMarker,Nothing} = nothing
@@ -1048,15 +1187,18 @@ function Base.Dict(pd::PlotData)
 
   (pd.line !== nothing) && (trace[:line] = Dict(pd.line))
   (pd.marker !== nothing) && (trace[:marker] = Dict(pd.marker))
+  (pd.error_x !== nothing) && (trace[:error_x] = Dict(pd.error_x))
+  (pd.error_y !== nothing) && (trace[:error_y] = Dict(pd.error_y))
+  (pd.error_z !== nothing) && (trace[:error_z] = Dict(pd.error_z))
+  (pd.colorbar !== nothing) && (trace[:colorbar] = Dict(pd.colorbar))
 
   optionals!(trace, pd, [:align, :alignmentgroup, :alphahull, :anchor, :aspectratio, :autobinx, :autobiny,
                         :autocolorscale, :autocontour, :automargin,
                         :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
                         :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
-                        :coloraxis, :colorbar, :colorscale, :columnorder, :columnwidth,
+                        :coloraxis, :colorscale, :columnorder, :columnwidth,
                         :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
                         :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
-                        :error_x, :error_y, :error_z,
                         :facecolor, :fill, :fillcolor, :flatshading,
                         :gauge, :groupnorm,
                         :header, :hidesurface, :high, :histfunc, :histnorm,
@@ -1105,8 +1247,8 @@ end
 
 #===#
 
-function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
-  layout = Dict(
+function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  layout = Dict{Symbol, Any}(
     :showlegend => pl.showlegend,
     :margin => Dict(
       :l => pl.margin_l,
@@ -1131,12 +1273,15 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
     :plot_bgcolor => pl.plot_bgcolor
   )
 
-  (pl.width !== nothing) && (layout[:width] = pl.width)
-  (pl.height !== nothing) && (layout[:height] = pl.height)
   (pl.title !== nothing) && (layout[:title] = Dict(pl.title))
   (pl.legend !== nothing) && (layout[:legend] = Dict(pl.legend))
   (pl.annotations !== nothing) && (layout[:annotations] = Dict.(pl.annotations))
   (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
+
+  optionals!(layout, pl, [
+    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap
+  ])
+
 
   if pl.xaxis !== nothing
     for d in Dict.(pl.xaxis)
@@ -1151,6 +1296,20 @@ function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothi
   end
 
   layout
+end
+
+function optionals!(d::Dict, pl::PlotLayout, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pl, o) !== nothing
+      d[o] = getproperty(pl, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pl)
 end
 
 # #===#
