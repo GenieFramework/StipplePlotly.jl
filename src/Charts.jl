@@ -415,8 +415,12 @@ Base.@kwdef mutable struct PlotLayoutAxis
   xy::String = "x" # "x" or "y"
   index::Int = 1 # 1, 2, 3 etc. for subplots
 
+  visible::Union{Bool,Nothing} = nothing
   title::Union{String,Nothing} = nothing # "axis title"
   font::Union{Font,Nothing} = nothing
+  title_text::Union{String,Nothing} = nothing
+  title_font::Union{Font,Nothing} = nothing
+  title_standoff::Union{Int,Nothing} = nothing
   automargin::Union{Bool,Nothing} = nothing
   ticks::Union{String,Nothing} = nothing
   showline::Union{Bool,Nothing} = nothing
@@ -425,6 +429,18 @@ Base.@kwdef mutable struct PlotLayoutAxis
   linewidth::Union{Int,Nothing} = nothing
   mirror::Union{Bool,String,Nothing} = nothing
   ticklabelposition::Union{String,Nothing} = nothing
+  tickson::Union{String,Nothing} = nothing
+  ticklabelmode::Union{String,Nothing} = nothing
+  ticklen::Union{Int,Nothing} = nothing
+  tickwidth::Union{Int,Nothing} = nothing
+  tickcolor::Union{String,Nothing} = nothing
+  showticklabels::Union{Bool,Nothing} = nothing
+  showspikes::Union{Bool,Nothing} = nothing
+  spikecolor::Union{String,Nothing} = nothing
+  spikethickness::Union{Int,Nothing} = nothing
+  spikedash::Union{String,Nothing} = nothing
+  spikemode::Union{String,Nothing} = nothing
+  spikesnap::Union{String,Nothing} = nothing
   showgrid::Union{Bool,Nothing} = nothing
   gridcolor::Union{String,Nothing} = nothing
   gridwidth::Union{Int,Nothing} = nothing
@@ -483,14 +499,24 @@ end
 function Base.Dict(la::PlotLayoutAxis)
   trace = Dict{Symbol,Any}()
 
-  d = optionals!(trace, la, [:title, :font, :automargin, :ticks, :showline, :zeroline,
+  if la.title_text !== nothing
+    d = Dict{Symbol,Any}(:text => la.title_text)
+    (la.title_font !== nothing) && (d[:font] = la.title_font)
+    (la.title_standoff !== nothing) && (d[:standoff] = la.title_standoff)
+    trace[:title] = d
+  end
+
+  d = optionals!(trace, la, [:visible, :title, :font, :automargin, :ticks, :showline, :zeroline,
                          :linecolor, :linewidth, :mirror, :ticklabelposition, :showgrid,
-                         :gridcolor, :gridwidth, :side, :anchor, :position, :domain, :scaleanchor, :scaleratio, :constrain, :constraintoward, :autorange,
+                         :gridcolor, :gridwidth, :side, :anchor, :position, :domain, :scaleanchor,
+                         :scaleratio, :constrain, :constraintoward, :autorange,
                          :rangemode, :range, :fixedrange, :type, :autotypenumbers,
                          :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :tickformat, :tickfont,
                          :tickangle, :tickprefix, :ticksuffix, :showexponent, :minexponent,
                          :hoverformat, :zerolinecolor, :zerolinewidth, :showdividers, :dividercolor,
-                         :dividerwidth, :overlaying, :layer, :categoryorder, :categoryarray, :calendar])
+                         :dividerwidth, :overlaying, :layer, :categoryorder, :categoryarray, :calendar,
+                         :tickson, :ticklabelmode, :ticklen, :tickwidth, :tickcolor, :showticklabels,
+                         :showspikes, :spikecolor, :spikethickness, :spikedash, :spikemode, :spikesnap])
 
   k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
   Dict(k => d)
@@ -640,26 +666,26 @@ Base.@kwdef mutable struct PlotLayout
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
   yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
 
-  showlegend::Bool = true
+  showlegend::Union{Bool,Nothing} = nothing # true
   legend::Union{PlotLayoutLegend,Nothing} = nothing
   annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
   grid::Union{PlotLayoutGrid,Nothing} = nothing
 
-  margin_l::Int = 80
-  margin_r::Int = 80
-  margin_t::Int = 100
-  margin_b::Int = 80
-  margin_pad::Int = 0
-  margin_autoexpand::Bool = true
-  autosize::Bool = true
-  width::Union{Int,Nothing} = nothing #700
-  height::Union{Int,Nothing} = nothing #450
-  font::Font = Font()
-  uniformtext_mode::Union{String,Bool} = false
-  uniformtext_minsize::Int = 0
-  separators::String = ".,"
-  paper_bgcolor::String = "#fff"
-  plot_bgcolor::String = "#fff"
+  margin_l::Union{Int,Nothing} = nothing # 80
+  margin_r::Union{Int,Nothing} = nothing # 80
+  margin_t::Union{Int,Nothing} = nothing # 100
+  margin_b::Union{Int,Nothing} = nothing # 80
+  margin_pad::Union{Int,Nothing} = nothing # 0
+  margin_autoexpand::Union{Bool,Nothing} = nothing # true
+  autosize::Union{Bool,Nothing} = nothing # true
+  width::Union{Int,String,Nothing} = nothing # 700
+  height::Union{Int,String,Nothing} = nothing # 450
+  font::Union{Font,Nothing} = nothing
+  uniformtext_mode::Union{String,Bool,Nothing} = nothing # false
+  uniformtext_minsize::Union{Int,Nothing} = nothing # 0
+  separators::Union{String,Nothing} = nothing # ".,"
+  paper_bgcolor::Union{String,Nothing} = nothing # "#fff"
+  plot_bgcolor::Union{String,Nothing} = nothing # "#fff"
 
   # TODO: implement the following fields in function Stipple.render(pl::PlotLayout...
   autotypenumbers::String = "convert types"
@@ -976,6 +1002,7 @@ Base.@kwdef mutable struct PlotData
   offsetgroup::Union{String,Nothing} = nothing
   opacity::Union{Float64,Nothing} = nothing
   opacityscale::Union{Float64,Int,Vector,String,Nothing} = nothing
+  colormodel::Union{String,Nothing} = nothing # image trace color models: "rgb" | "rgba" | "rgba256" | "hsl" | "hsla"
   open::Union{Vector,Nothing} = nothing
   orientation::Union{String,Nothing} = nothing
   outsidetextfont::Union{Font,Nothing} = nothing
@@ -1209,7 +1236,7 @@ function Base.Dict(pd::PlotData)
                         :maxdisplayed, :meanline, :measure, :median, :meta,
                         :mode,
                         :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
-                        :offset, :offsetgroup, :opacity, :opacityscale, :open, :orientation,
+                        :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
                         :points, :pointpos, :projection, :pull,
                         :q1, :q3, :quartilemethod,
                         :reversescale, :rotation,
@@ -1248,37 +1275,36 @@ end
 #===#
 
 function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
-  layout = Dict{Symbol, Any}(
-    :showlegend => pl.showlegend,
-    :margin => Dict(
-      :l => pl.margin_l,
-      :r => pl.margin_r,
-      :t => pl.margin_t,
-      :b => pl.margin_b,
-      :pad => pl.margin_pad,
-      :autoexpand => pl.margin_autoexpand
-    ),
-    :autosize => pl.autosize,
-    :font => Dict(
+  layout = Dict{Symbol, Any}()
+
+  if pl.font !== nothing
+    layout[:font] = Dict{Symbol, Any}(
       :family => pl.font.family,
       :size => pl.font.size,
       :color => pl.font.color
-    ),
-    :uniformtext => Dict(
-      :mode => pl.uniformtext_mode,
-      :minsize => pl.uniformtext_minsize
-    ),
-    :separators => pl.separators,
-    :paper_bgcolor => pl.paper_bgcolor,
-    :plot_bgcolor => pl.plot_bgcolor
-  )
+    )
+  end
+
+  d1 = Dict{Symbol, Any}()
+  (pl.margin_l !== nothing) && (d1[:l] = pl.margin_l)
+  (pl.margin_r !== nothing) && (d1[:r] = pl.margin_r)
+  (pl.margin_t !== nothing) && (d1[:t] = pl.margin_t)
+  (pl.margin_b !== nothing) && (d1[:b] = pl.margin_b)
+  (pl.margin_pad !== nothing) && (d1[:pad] = pl.margin_pad)
+  (pl.margin_autoexpand !== nothing) && (d1[:autoexpand] = pl.margin_autoexpand)
+  (length(d1) > 0) && (layout[:margin] = d1)
+
+  d2 = Dict{Symbol, Any}()
+  (pl.uniformtext_mode !== nothing) && (d2[:mode] = pl.uniformtext_mode)
+  (pl.uniformtext_minsize !== nothing) && (d2[:minsize] = pl.uniformtext_minsize)
+  (length(d2) > 0) && (layout[:uniformtext] = d2)
 
   (pl.title !== nothing) && (layout[:title] = Dict(pl.title))
   (pl.legend !== nothing) && (layout[:legend] = Dict(pl.legend))
   (pl.annotations !== nothing) && (layout[:annotations] = Dict.(pl.annotations))
   (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
 
-  optionals!(layout, pl, [
+  optionals!(layout, pl, [ :showlegend, :autosize, :separators, :paper_bgcolor, :plot_bgcolor,
     :width, :height, :barmode, :barnorm, :bargap, :bargroupgap
   ])
 
