@@ -9,6 +9,7 @@ export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorB
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
+
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
 const PLOT_TYPE_SCATTER = "scatter"
@@ -661,6 +662,105 @@ end
 
 #===#
 
+#===#
+
+Base.@kwdef mutable struct PlotAnnotation
+  visible::Union{Bool,Nothing} = nothing
+  text::Union{String,Nothing} = nothing
+  textangle::Union{Float64,Int,Nothing} = nothing
+  font::Union{Font,Nothing} = nothing
+  width::Union{Float64,Int,Nothing} = nothing
+  height::Union{Float64,Int,Nothing} = nothing
+  opacity::Union{Float64,Nothing} = nothing
+  align::Union{String,Nothing} = nothing
+  valign::Union{String,Nothing} = nothing
+  bgcolor::Union{String,Nothing} = nothing
+  bordercolor::Union{String,Nothing} = nothing
+  borderpad::Union{Int,Nothing} = nothing
+  borderwidth::Union{Int,Nothing} = nothing
+  showarrow::Union{Bool,Nothing} = nothing
+  arrowcolor::Union{String,Nothing} = nothing
+  arrowhead::Union{Int,Nothing} = nothing
+  startarrowhead::Union{Int,Nothing} = nothing
+  arrowside::Union{String,Nothing} = nothing
+  arrowsize::Union{Float64,Nothing} = nothing
+  startarrowsize::Union{Float64,Nothing} = nothing
+  arrowwidth::Union{Float64,Nothing} = nothing
+  standoff::Union{Int,Nothing} = nothing
+  startstandoff::Union{Int,Nothing} = nothing
+  ax::Union{String,Int,Float64,Nothing} = nothing
+  ay::Union{String,Int,Float64,Nothing} = nothing
+  axref::Union{String,Nothing} = nothing
+  ayref::Union{String,Nothing} = nothing
+  xref::Union{String,Int,Float64,Nothing} = nothing
+  x::Union{String,Int,Float64,Nothing} = nothing
+  xanchor::Union{String,Nothing} = nothing
+  xshift::Union{Int,Float64,Nothing} = nothing
+  yref::Union{String,Int,Float64,Nothing} = nothing
+  y::Union{String,Int,Float64,Nothing} = nothing
+  yanchor::Union{String,Nothing} = nothing
+  yshift::Union{Int,Float64,Nothing} = nothing
+  # TODO: clicktoshow
+  # TODO: xclick
+  # TODO: yclick
+  hoverlabel::Union{Dict,Nothing} = nothing
+  captureevents::Union{Bool,Nothing} = nothing
+  name::Union{String,Nothing} = nothing
+  templateitemname::Union{String,Nothing} = nothing
+end
+
+function Base.show(io::IO, an::PlotAnnotation)
+  output = "Annotation: \n"
+  for f in fieldnames(typeof(an))
+    prop = getproperty(an, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(output)
+end
+
+function Base.Dict(an::PlotAnnotation)
+  trace = Dict{Symbol,Any}()
+
+  if an.font !== nothing
+    trace[:font] = Dict(
+      :family => an.font.family,
+      :size => an.font.size,
+      :color => an.font.color
+    )
+  end
+
+  if an.hoverlabel !== nothing
+    trace[:hoverlabel] = an.hoverlabel
+  end
+
+  optionals!(trace, an, [:visible, :text, :textangle, :width, :height, :opacity,
+          :align, :valign, :bgcolor, :bordercolor, :borderpad, :borderwidth, :showarrow,
+          :arrowcolor, :arrowhead, :startarrowhead, :arrowside, :arrowsize, :startarrowsize,
+          :arrowwidth, :standoff, :startstandoff, :ax, :ay, :axref, :ayref, :xref, :x,
+          :xanchor, :xshift, :yref, :y, :yanchor, :yshift, :captureevents, :name, :templateitemname])
+
+end
+
+function optionals!(d::Dict, an::PlotAnnotation, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(an, o) !== nothing
+      d[o] = getproperty(an, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(an) for an in anv]
+end
+
+
+#===#
+
 Base.@kwdef mutable struct PlotLayout
   title::Union{PlotLayoutTitle,Nothing} = nothing
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
@@ -755,6 +855,7 @@ Base.@kwdef mutable struct PlotLayout
   extendsunburstcolors::Bool = true
   # TODO: treemapcolorway
   extendtreemapcolors::Bool = true
+  annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
 end
 
 function Base.show(io::IO, l::PlotLayout)
@@ -1180,6 +1281,7 @@ function Base.show(io::IO, pd::PlotData)
 
   print(io, output)
 end
+
 
 #===#
 
