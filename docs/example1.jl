@@ -12,8 +12,10 @@ pd(name) = PlotData(
 Base.@kwdef mutable struct Model <: ReactiveModel
   data::R{Vector{PlotData}} = [pd("Random 1"),pd("Random 2")]
   layout::R{PlotLayout} = PlotLayout(
-    plot_bgcolor = "#333",
-    title_text = "Random numbers")
+      plot_bgcolor = "#333",
+      title = PlotLayoutTitle(text="Random numbers", font=Font(24))
+    )
+  config::R{PlotConfig} = PlotConfig()
 end
 
 model = Stipple.init(Model())
@@ -21,7 +23,7 @@ model = Stipple.init(Model())
 function ui()
   page(
     vm(model), class="container", [
-      plot(:data, layout = :layout)
+      plot(:data, layout = :layout, config = :config)
     ]
   ) |> html
 end

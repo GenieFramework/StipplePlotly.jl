@@ -6,6 +6,9 @@ import Genie.Renderer.Html: HTMLString, normal_element
 using Stipple
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
+export PlotLayoutGrid, PlotLayoutAxis
+export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
+
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 
@@ -60,7 +63,6 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
-
 Genie.Renderer.Html.register_normal_element("plotly", context = @__MODULE__)
 
 Base.@kwdef mutable struct Font
@@ -75,57 +77,590 @@ function Font(fontsize::Union{Int,Float64})
   return fs
 end
 
-function ColorBar(text, title_font_size::Union{Int,Float64}, side)
-  Dict(
-    :title => Dict(
-      :text => text,
-      :font => Font(title_font_size),
-      :side => side
-    )
-  )
-end
-
-function ErrorBar(error_array::Vector)
-  Dict(
-    :type => "data",
-    :array => error_array,
-    :visible => true,
-    :symmetric => true
-  )
-end
-
-function ErrorBar(error_array::Vector, error_arrayminus::Vector)
-  Dict(
-    :type => "data",
-    :array => error_array,
-    :arrayminus => error_arrayminus,
-    :visible => true,
-    :symmetric => false
-  )
-end
-
-function ErrorBar(error_value::Number)
-  Dict(
-    :type => "percent",
-    :value => error_value,
-    :visible => true,
-    :symmetric => true
-  )
-end
-
-function ErrorBar(error_value::Number, error_valueminus::Number)
-  Dict(
-    :type => "percent",
-    :value => error_value,
-    :valueminus => error_valueminus,
-    :visible => true,
-    :symmetric => false
-  )
-end
-
 Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
 
 Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
+
+#===#
+
+Base.@kwdef mutable struct ColorBar
+  thicknessmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is pixels
+  thickness::Union{Int,Nothing} = nothing # 30
+  lenmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is fraction
+  len::Union{Float64,Int,Nothing} = nothing # 1
+  x::Union{Float64,Nothing} = nothing # 1.02
+  xanchor::Union{String,Nothing} = nothing # "left" | "center" | "right", default is left
+  xpad::Union{Int,Nothing} = nothing # 10
+  yanchor::Union{String,Nothing} = nothing # "top" | "middle" | "bottom", default is middle
+  ypad::Union{Int,Nothing} = nothing # 10
+  outlinecolor::Union{String,Nothing} = nothing # "#444"
+  bordercolor::Union{String,Nothing} = nothing # "#444"
+  borderwidth::Union{Int,Nothing} = nothing # 0
+  bgcolor::Union{String,Nothing} = nothing # "rgba(0,0,0,0)"
+  tickmode::Union{String,Nothing} = nothing
+  nticks::Union{Int,Nothing} = nothing
+  tick0::Union{Float64,Int,String,Nothing} = nothing
+  dtick::Union{Float64,Int,String,Nothing} = nothing
+  tickvals::Union{Vector{Float64},Vector{Int},Nothing} = nothing
+  ticktext::Union{Vector{String},Nothing} = nothing
+  ticks::Union{String,Nothing} = nothing # "outside" | "inside" | ""
+  ticklabelposition::Union{String,Nothing} = nothing # "outside" | "inside" | "outside top" | "inside top" | "outside bottom" | "inside bottom", default is outside
+  ticklen::Union{Int,Nothing} = nothing # 5
+  tickwidth::Union{Int,Nothing} = nothing # 1
+  tickcolor::Union{String,Nothing} = nothing # "#444"
+  showticklabels::Union{Bool,Nothing} = nothing # true
+  tickfont::Union{Font,Nothing} = nothing
+  tickangle::Union{String,Int,Float64,Nothing} = nothing
+  tickformat::Union{String,Nothing} = nothing
+  tickformatstops::Union{Dict,Nothing} = nothing
+  tickprefix::Union{String,Nothing} = nothing
+  showtickprefix::Union{String,Nothing} = nothing # "all" | "first" | "last" | "none", default is all
+  ticksuffix::Union{String,Nothing} = nothing
+  showticksuffix::Union{String,Nothing} = nothing # "all" | "first" | "last" | "none",
+  separatethousands::Union{Bool,Nothing} = nothing
+  exponentformat::Union{String,Nothing} = nothing # none" | "e" | "E" | "power" | "SI" | "B", default is B
+  minexponent::Union{Int,Nothing} = nothing
+  showexponent::Union{String,Nothing} = nothing
+  # needs special treatment:
+  title_text::Union{String,Nothing} = nothing # ""
+  title_font::Union{Font,Nothing} = nothing # Font()
+  title_side::Union{String,Nothing} = nothing # LAYOUT_LEFT
+end
+
+function Base.show(io::IO, cb::ColorBar)
+  output = "ColorBar: \n"
+  for f in fieldnames(typeof(cb))
+    prop = getproperty(cb, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(cb::ColorBar)
+  trace = Dict{Symbol, Any}()
+
+  d = Dict{Symbol, Any}()
+  (cb.title_text !== nothing) && (d[:text] = cb.title_text)
+  (cb.title_font !== nothing) && (d[:font] = cb.title_font)
+  (cb.title_side !== nothing) && (d[:side] = cb.title_side)
+  (length(d) > 0) && (trace[:title] = d)
+
+  optionals!(trace, cb, [
+    :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor, :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition, :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix, :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
+  ])
+end
+
+function optionals!(d::Dict, cb::ColorBar, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(cb, o) !== nothing
+      d[o] = getproperty(cb, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(cb::ColorBar, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(cb)
+end
+
+function ColorBar(text, title_font_size::Union{Int,Float64}, side)
+  cb = ColorBar()
+  cb.title_text = text
+  cb.title_font = Font(title_font_size)
+  cb.title_side = side
+  cb
+end
+
+#===#
+
+Base.@kwdef mutable struct ErrorBar
+  visible::Union{Bool,Nothing} = nothing
+  type::Union{String,Nothing} = nothing # "percent" | "constant" | "sqrt" | "data"
+  symmetric::Union{Bool,Nothing} = nothing
+  array::Union{Vector{Float64},Nothing} = nothing
+  arrayminus::Union{Vector{Float64},Nothing} = nothing
+  value::Union{Float64,Nothing} = nothing # 10
+  valueminus::Union{Float64,Nothing} = nothing # 10
+  traceref::Union{Int,Nothing} = nothing # 0
+  tracerefminus::Union{Int,Nothing} = nothing # 0
+  copy_ystyle::Union{Bool,Nothing} = nothing
+  color::Union{String,Nothing} = nothing
+  thickness::Union{Int,Nothing} = nothing # 2
+  width::Union{Int,Nothing} = nothing # 0
+end
+
+function Base.show(io::IO, eb::ErrorBar)
+  output = "Errorbar: \n"
+  for f in fieldnames(typeof(eb))
+    prop = getproperty(eb, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function ErrorBar(error_array::Vector; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, array=error_array, type="data", symmetric=true)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_array::Vector, error_arrayminus::Vector; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, array=error_array, type="data", symmetric=false, arrayminus=error_arrayminus)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_value::Number; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, value=error_value, type="percent", symmetric=true)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function ErrorBar(error_value::Number, error_valueminus::Number; color::Union{String,Nothing} = nothing)
+  eb = ErrorBar(visible=true, value=error_value, type="percent", symmetric=false, valueminus=error_valueminus)
+  (color !== nothing) && (eb.color = color)
+  eb
+end
+
+function Base.Dict(eb::ErrorBar)
+  trace = Dict{Symbol, Any}()
+
+  optionals!(trace, eb, [
+    :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus, :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
+  ])
+end
+
+function optionals!(d::Dict, eb::ErrorBar, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(eb, o) !== nothing
+      d[o] = getproperty(eb, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(eb::ErrorBar, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(eb)
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotAnnotation
+  visible::Union{Bool,Nothing} = nothing
+  text::Union{String,Nothing} = nothing
+  textangle::Union{Float64,Int,Nothing} = nothing
+  font::Union{Font,Nothing} = nothing
+  width::Union{Float64,Int,Nothing} = nothing
+  height::Union{Float64,Int,Nothing} = nothing
+  opacity::Union{Float64,Nothing} = nothing
+  align::Union{String,Nothing} = nothing
+  valign::Union{String,Nothing} = nothing
+  bgcolor::Union{String,Nothing} = nothing
+  bordercolor::Union{String,Nothing} = nothing
+  borderpad::Union{Int,Nothing} = nothing
+  borderwidth::Union{Int,Nothing} = nothing
+  showarrow::Union{Bool,Nothing} = nothing
+  arrowcolor::Union{String,Nothing} = nothing
+  arrowhead::Union{Int,Nothing} = nothing
+  startarrowhead::Union{Int,Nothing} = nothing
+  arrowside::Union{String,Nothing} = nothing
+  arrowsize::Union{Float64,Nothing} = nothing
+  startarrowsize::Union{Float64,Nothing} = nothing
+  arrowwidth::Union{Float64,Nothing} = nothing
+  standoff::Union{Int,Nothing} = nothing
+  startstandoff::Union{Int,Nothing} = nothing
+  ax::Union{String,Int,Float64,Nothing} = nothing
+  ay::Union{String,Int,Float64,Nothing} = nothing
+  axref::Union{String,Nothing} = nothing
+  ayref::Union{String,Nothing} = nothing
+  xref::Union{String,Int,Float64,Nothing} = nothing
+  x::Union{String,Int,Float64,Nothing} = nothing
+  xanchor::Union{String,Nothing} = nothing
+  xshift::Union{Int,Float64,Nothing} = nothing
+  yref::Union{String,Int,Float64,Nothing} = nothing
+  y::Union{String,Int,Float64,Nothing} = nothing
+  yanchor::Union{String,Nothing} = nothing
+  yshift::Union{Int,Float64,Nothing} = nothing
+  # TODO: clicktoshow
+  # TODO: xclick
+  # TODO: yclick
+  hoverlabel::Union{Dict,Nothing} = nothing
+  captureevents::Union{Bool,Nothing} = nothing
+  name::Union{String,Nothing} = nothing
+  templateitemname::Union{String,Nothing} = nothing
+end
+
+function Base.show(io::IO, an::PlotAnnotation)
+  output = "Annotation: \n"
+  for f in fieldnames(typeof(an))
+    prop = getproperty(an, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(an::PlotAnnotation)
+  trace = Dict{Symbol,Any}()
+
+  if an.font !== nothing
+    trace[:font] = Dict(
+      :family => an.font.family,
+      :size => an.font.size,
+      :color => an.font.color
+    )
+  end
+
+  if an.hoverlabel !== nothing
+    trace[:hoverlabel] = an.hoverlabel
+  end
+
+  optionals!(trace, an, [:visible, :text, :textangle, :width, :height, :opacity,
+          :align, :valign, :bgcolor, :bordercolor, :borderpad, :borderwidth, :showarrow,
+          :arrowcolor, :arrowhead, :startarrowhead, :arrowside, :arrowsize, :startarrowsize,
+          :arrowwidth, :standoff, :startstandoff, :ax, :ay, :axref, :ayref, :xref, :x,
+          :xanchor, :xshift, :yref, :y, :yanchor, :yshift, :captureevents, :name, :templateitemname])
+
+end
+
+function optionals!(d::Dict, an::PlotAnnotation, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(an, o) !== nothing
+      d[o] = getproperty(an, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(an) for an in anv]
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotLayoutGrid
+  rows::Union{Int,Nothing} = nothing # >= 1
+  roworder::Union{String,Nothing} = nothing # "top to bottom" | "bottom to top"
+  columns::Union{Int,Nothing} = nothing # >= 1
+  subplots::Union{Matrix{String},Nothing} = nothing
+  xaxes::Union{Vector{String},Nothing} = nothing
+  yaxes::Union{Vector{String},Nothing} = nothing
+  pattern::Union{String,Nothing} = nothing # "independent" | "coupled"
+  xgap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
+  ygap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
+  domain_x::Union{Vector{Float64},Nothing} = nothing # fraction, e.g [0, 1]
+  domain_y::Union{Vector{Float64},Nothing} = nothing # fraction, e.g [0, 1]
+  xside::Union{String,Nothing} = nothing # "bottom" | "bottom plot" | "top plot" | "top"
+  yside::Union{String,Nothing} = nothing # "bottom" | "bottom plot" | "top plot" | "top"
+end
+
+function Base.show(io::IO, lg::PlotLayoutGrid)
+  output = "Layout Grid: \n"
+  for f in fieldnames(typeof(lg))
+    prop = getproperty(lg, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(lg::PlotLayoutGrid)
+  trace = Dict{Symbol,Any}()
+
+  if (lg.domain_x !== nothing) & (lg.domain_y !== nothing)
+    trace[:domain] = Dict(
+      :x => lg.domain_x,
+      :y => lg.domain_y
+    )
+  elseif lg.domain_x !== nothing
+    trace[:domain] = Dict(
+      :x => lg.domain_x
+    )
+  elseif lg.domain_y !== nothing
+    trace[:domain] = Dict(
+      :y => lg.domain_y
+    )
+  end
+
+  optionals!(trace, lg, [:rows, :roworder, :columns, :subplots, :xaxes, :yaxes,
+                         :pattern, :xgap, :ygap, :xside, :yside])
+
+end
+
+function optionals!(d::Dict, lg::PlotLayoutGrid, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(lg, o) !== nothing
+      d[o] = getproperty(lg, o)
+    end
+  end
+
+  d
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotLayoutAxis
+  xy::String = "x" # "x" or "y"
+  index::Int = 1 # 1, 2, 3 etc. for subplots
+
+  visible::Union{Bool,Nothing} = nothing
+  title::Union{String,Nothing} = nothing # "axis title"
+  font::Union{Font,Nothing} = nothing
+  title_text::Union{String,Nothing} = nothing
+  title_font::Union{Font,Nothing} = nothing
+  title_standoff::Union{Int,Nothing} = nothing
+  automargin::Union{Bool,Nothing} = nothing
+  ticks::Union{String,Nothing} = nothing
+  showline::Union{Bool,Nothing} = nothing
+  zeroline::Union{Bool,Nothing} = nothing
+  linecolor::Union{String,Nothing} = nothing
+  linewidth::Union{Int,Nothing} = nothing
+  mirror::Union{Bool,String,Nothing} = nothing
+  ticklabelposition::Union{String,Nothing} = nothing
+  tickson::Union{String,Nothing} = nothing
+  ticklabelmode::Union{String,Nothing} = nothing
+  ticklen::Union{Int,Nothing} = nothing
+  tickwidth::Union{Int,Nothing} = nothing
+  tickcolor::Union{String,Nothing} = nothing
+  showticklabels::Union{Bool,Nothing} = nothing
+  showspikes::Union{Bool,Nothing} = nothing
+  spikecolor::Union{String,Nothing} = nothing
+  spikethickness::Union{Int,Nothing} = nothing
+  spikedash::Union{String,Nothing} = nothing
+  spikemode::Union{String,Nothing} = nothing
+  spikesnap::Union{String,Nothing} = nothing
+  showgrid::Union{Bool,Nothing} = nothing
+  gridcolor::Union{String,Nothing} = nothing
+  gridwidth::Union{Int,Nothing} = nothing
+  side::Union{String,Nothing} = nothing
+  anchor::Union{String,Nothing} = nothing
+  position::Union{Float64,Nothing} = nothing
+  domain::Union{Vector{Float64},Nothing} = nothing
+  scaleanchor::Union{String,Nothing} = nothing
+  scaleratio::Union{Int,Nothing} = nothing
+  constrain::Union{String,Nothing} = nothing
+  constraintoward::Union{String,Nothing} = nothing
+  autorange::Union{Bool,String,Nothing} = nothing
+  rangemode::Union{String,Nothing} = nothing
+  range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  fixedrange::Union{Bool,Nothing} = nothing
+  type::Union{String,Nothing} = nothing
+  autotypenumbers::Union{String,Nothing} = nothing
+  tickmode::Union{String,Nothing} = nothing
+  nticks::Union{Int,Nothing} = nothing
+  tick0::Union{Float64,Int,String,Nothing} = nothing
+  dtick::Union{Float64,Int,String,Nothing} = nothing
+  tickvals::Union{Vector{Float64},Vector{Int},Nothing} = nothing
+  ticktext::Union{Vector{String},Nothing} = nothing
+  tickformat::Union{String,Nothing} = nothing
+  tickfont::Union{Font,Nothing} = nothing
+  tickangle::Union{String,Int,Float64,Nothing} = nothing
+  tickprefix::Union{String,Nothing} = nothing
+  ticksuffix::Union{String,Nothing} = nothing
+  showexponent::Union{String,Nothing} = nothing
+  minexponent::Union{Int,Nothing} = nothing
+  hoverformat::Union{String,Nothing} = nothing
+  zerolinecolor::Union{String,Nothing} = nothing
+  zerolinewidth::Union{Int,Nothing} = nothing
+  showdividers::Union{Bool,Nothing} = nothing
+  dividercolor::Union{String,Nothing} = nothing
+  dividerwidth::Union{Int,Nothing} = nothing
+  overlaying::Union{String,Nothing} = nothing
+  layer::Union{String,Nothing} = nothing
+  categoryorder::Union{String,Nothing} = nothing
+  categoryarray::Union{Vector{Float64},Nothing} = nothing
+  calendar::Union{String,Nothing} = nothing
+end
+
+function Base.show(io::IO, la::PlotLayoutAxis)
+  output = "Layout Axis: \n"
+  for f in fieldnames(typeof(la))
+    prop = getproperty(la, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(la::PlotLayoutAxis)
+  trace = Dict{Symbol,Any}()
+
+  if la.title_text !== nothing
+    d = Dict{Symbol,Any}(:text => la.title_text)
+    (la.title_font !== nothing) && (d[:font] = la.title_font)
+    (la.title_standoff !== nothing) && (d[:standoff] = la.title_standoff)
+    trace[:title] = d
+  end
+
+  d = optionals!(trace, la, [:visible, :title, :font, :automargin, :ticks, :showline, :zeroline,
+                         :linecolor, :linewidth, :mirror, :ticklabelposition, :showgrid,
+                         :gridcolor, :gridwidth, :side, :anchor, :position, :domain, :scaleanchor,
+                         :scaleratio, :constrain, :constraintoward, :autorange,
+                         :rangemode, :range, :fixedrange, :type, :autotypenumbers,
+                         :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :tickformat, :tickfont,
+                         :tickangle, :tickprefix, :ticksuffix, :showexponent, :minexponent,
+                         :hoverformat, :zerolinecolor, :zerolinewidth, :showdividers, :dividercolor,
+                         :dividerwidth, :overlaying, :layer, :categoryorder, :categoryarray, :calendar,
+                         :tickson, :ticklabelmode, :ticklen, :tickwidth, :tickcolor, :showticklabels,
+                         :showspikes, :spikecolor, :spikethickness, :spikedash, :spikemode, :spikesnap])
+
+  k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
+  Dict(k => d)
+end
+
+function optionals!(d::Dict, la::PlotLayoutAxis, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(la, o) !== nothing
+      d[o] = getproperty(la, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(la::PlotLayoutAxis, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(la)]
+end
+
+function Stipple.render(lav::Vector{PlotLayoutAxis}, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(la) for la in lav]
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotLayoutTitle
+  text::Union{String,Nothing} = nothing # ""
+  font::Union{Font,Nothing} = nothing # Font()
+  xref::Union{String,Nothing} = nothing # LAYOUT_TITLE_REF_CONTAINER
+  yref::Union{String,Nothing} = nothing # LAYOUT_TITLE_REF_CONTAINER
+  x::Union{Float64,String,Nothing} = nothing # 0.5
+  y::Union{Float64,String,Nothing} = nothing # LAYOUT_AUTO
+  xanchor::Union{String,Nothing} = nothing # LAYOUT_AUTO
+  yanchor::Union{String,Nothing} = nothing # LAYOUT_AUTO
+  pad_t::Union{Int,Nothing} = nothing # 0
+  pad_r::Union{Int,Nothing} = nothing # 0
+  pad_b::Union{Int,Nothing} = nothing # 0
+  pad_l::Union{Int,Nothing} = nothing # 0
+end
+
+function Base.show(io::IO, plt::PlotLayoutTitle)
+  output = "Layout Title: \n"
+  for f in fieldnames(typeof(plt))
+    prop = getproperty(plt, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(plt::PlotLayoutTitle)
+  trace = Dict{Symbol, Any}()
+
+  d = Dict{Symbol, Any}()
+  (plt.pad_t !== nothing) && (d[:t] = plt.pad_t)
+  (plt.pad_r !== nothing) && (d[:r] = plt.pad_r)
+  (plt.pad_b !== nothing) && (d[:b] = plt.pad_b)
+  (plt.pad_l !== nothing) && (d[:l] = plt.pad_l)
+  (length(d) > 0) && (trace[:pad] = d)
+
+  optionals!(trace, plt, [:text, :font, :xref, :yref, :x, :y, :xanchor, :yanchor])
+end
+
+function optionals!(d::Dict, plt::PlotLayoutTitle, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(plt, o) !== nothing
+      d[o] = getproperty(plt, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(plt::PlotLayoutTitle, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(plt)
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotLayoutLegend
+  bgcolor::Union{String,Nothing} = nothing
+  bordercolor::Union{String,Nothing} = nothing # "#444"
+  borderwidth::Union{Int,Nothing} = nothing # 0
+  font::Union{Font,Nothing} = nothing # Font()
+  orientation::Union{String,Nothing} = nothing # LAYOUT_ORIENTATION_VERTICAL
+  traceorder::Union{String,Nothing} = nothing # "normal"
+  tracegroupgap::Union{Int,Nothing} = nothing # 10
+  itemsizing::Union{String,Nothing} = nothing # LAYOUT_ITEMSIZING_TRACE
+  itemwidth::Union{Int,Nothing} = nothing # 30
+  itemclick::Union{String,Bool,Nothing} = nothing # LAYOUT_CLICK_TOGGLE
+  itemdoubleclick::Union{String,Bool,Nothing} = nothing #  LAYOUT_CLICK_TOGGLEOTHERS
+  x::Union{Int,Float64,Nothing} = nothing # 1.02
+  xanchor::Union{String,Nothing} = nothing # LAYOUT_LEFT
+  y::Union{Int,Float64,Nothing} = nothing # 1
+  yanchor::Union{String,Nothing} = nothing # LAYOUT_AUTO
+  # TODO: uirevision::Union{Int,String} = ""
+  valign::Union{String,Nothing} = nothing # LAYOUT_MIDDLE
+  title_text::Union{String,Nothing} = nothing # ""
+  title_font::Union{Font,Nothing} = nothing # Font()
+  title_side::Union{String,Nothing} = nothing # LAYOUT_LEFT
+end
+
+function Base.show(io::IO, pll::PlotLayoutLegend)
+  output = "Layout Legend: \n"
+  for f in fieldnames(typeof(pll))
+    prop = getproperty(pll, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(pll::PlotLayoutLegend)
+  trace = Dict{Symbol, Any}()
+
+  d = Dict{Symbol, Any}()
+  (pll.title_text !== nothing) && (d[:text] = pll.title_text)
+  (pll.title_font !== nothing) && (d[:font] = pll.title_font)
+  (pll.title_side !== nothing) && (d[:side] = pll.title_side)
+  (length(d) > 0) && (trace[:title] = d)
+
+  optionals!(trace, pll, [:bgcolor, :bordercolor, :borderwidth, :font, :orientation, :traceorder, :tracegroupgap, :itemsizing, :itemwidth, :itemclick, :itemdoubleclick, :x, :xanchor, :y, :yanchor, :valign])
+end
+
+function optionals!(d::Dict, pll::PlotLayoutLegend, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pll, o) !== nothing
+      d[o] = getproperty(pll, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pll)
+end
+
+#===#
 
 #===#
 
@@ -227,124 +762,32 @@ end
 #===#
 
 Base.@kwdef mutable struct PlotLayout
-  title_text::String = ""
-  title_font::Font = Font()
-  title_xref::String = LAYOUT_TITLE_REF_CONTAINER
-  title_yref::String = LAYOUT_TITLE_REF_CONTAINER
-  title_x::Union{Float64,String} = 0.5
-  title_y::Union{Float64,String} = LAYOUT_AUTO
-  title_xanchor::String = LAYOUT_AUTO
-  title_yanchor::String = LAYOUT_AUTO
-  title_pad_t::Int = 0
-  title_pad_r::Int = 0
-  title_pad_b::Int = 0
-  title_pad_l::Int = 0
+  title::Union{PlotLayoutTitle,Nothing} = nothing
+  xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
+  yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
 
-  xaxis_text::String = "x-axis"
-  xaxis_font::Font = Font()
-  xaxis_automargin::Bool = true
-  xaxis_ticks::String = "inside"
-  xaxis_showline::Bool = false
-  xaxis_zeroline::Bool = true
-  xaxis_linecolor::String = "#444"
-  xaxis_linewidth::Int = 1
-  xaxis_mirror::Union{Bool, String} = false
-  xaxis_ticklabelposition::String = "outside"
-  xaxis_showgrid::Bool = true
-  xaxis_gridcolor::String = "#eee"
-  xaxis_gridwidth::Int = 1
-  xaxis_side::String = "bottom"
-  xaxis_anchor::String = "free"
-  xaxis_position::Float64 = 0.0
-  xaxis_scaleanchor::String = ""
-  xaxis_scaleratio::Int = 1
-  xaxis_constrain::String = "domain"
-  xaxis_constraintoward::String = "center"
-  xaxis_autorange::Union{Bool,String} = true
-  xaxis_rangemode::String = "normal"
-  xaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
-  xaxis_fixedrange::Bool = false
-  xaxis_type::String = "-"
-  xaxis_autotypenumbers::String = "convert types"
-  xaxis_tickmode::Union{String,Nothing} = nothing
-  xaxis_nticks::Int = 0
-  xaxis_tick0::Union{Float64,Int,String} = 0
-  xaxis_dtick::Union{Float64,Int,String} = 1
-  xaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
-  xaxis_ticktext::Vector{String} = String[]
-  xaxis_tickformat::String = ""
+  showlegend::Union{Bool,Nothing} = nothing # true
+  legend::Union{PlotLayoutLegend,Nothing} = nothing
+  annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
+  grid::Union{PlotLayoutGrid,Nothing} = nothing
 
-  yaxis_text::String = "y-axis"
-  yaxis_font::Font = Font()
-  yaxis_automargin::Bool = true
-  yaxis_ticks::String = "inside"
-  yaxis_showline::Bool = false
-  yaxis_zeroline::Bool = true
-  yaxis_linecolor::String = "#444"
-  yaxis_linewidth::Int = 1
-  yaxis_mirror::Union{Bool, String} = false
-  yaxis_ticklabelposition::String = "outside"
-  yaxis_showgrid::Bool = true
-  yaxis_gridcolor::String = "#eee"
-  yaxis_gridwidth::Int = 1
-  yaxis_side::String = "left"
-  yaxis_anchor::String = "free"
-  yaxis_position::Float64 = 0.0
-  yaxis_scaleanchor::String = ""
-  yaxis_scaleratio::Int = 1
-  yaxis_constrain::String = "domain"
-  yaxis_constraintoward::String = "center"
-  yaxis_autorange::Union{Bool,String} = true
-  yaxis_rangemode::String = "normal"
-  yaxis_range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
-  yaxis_fixedrange::Bool = false
-  yaxis_type::String = "-"
-  yaxis_autotypenumbers::String = "convert types"
-  yaxis_tickmode::Union{String,Nothing} = nothing
-  yaxis_nticks::Int = 0
-  yaxis_tick0::Union{Float64,Int,String} = 0
-  yaxis_dtick::Union{Float64,Int,String} = 1
-  yaxis_tickvals::Union{Vector{Float64},Vector{Int}} = Int[]
-  yaxis_ticktext::Vector{String} = String[]
-  yaxis_tickformat::String = ""
+  margin_l::Union{Int,Nothing} = nothing # 80
+  margin_r::Union{Int,Nothing} = nothing # 80
+  margin_t::Union{Int,Nothing} = nothing # 100
+  margin_b::Union{Int,Nothing} = nothing # 80
+  margin_pad::Union{Int,Nothing} = nothing # 0
+  margin_autoexpand::Union{Bool,Nothing} = nothing # true
+  autosize::Union{Bool,Nothing} = nothing # true
+  width::Union{Int,String,Nothing} = nothing # 700
+  height::Union{Int,String,Nothing} = nothing # 450
+  font::Union{Font,Nothing} = nothing
+  uniformtext_mode::Union{String,Bool,Nothing} = nothing # false
+  uniformtext_minsize::Union{Int,Nothing} = nothing # 0
+  separators::Union{String,Nothing} = nothing # ".,"
+  paper_bgcolor::Union{String,Nothing} = nothing # "#fff"
+  plot_bgcolor::Union{String,Nothing} = nothing # "#fff"
 
-  showlegend::Bool = true
-  legend_bgcolor::Union{String,Nothing} = nothing
-  legend_bordercolor::String = "#444"
-  legend_borderwidth::Int = 0
-  legend_font::Font = Font()
-  legend_orientation::String = LAYOUT_ORIENTATION_VERTICAL
-  legend_traceorder::String = "normal"
-  legend_tracegroupgap::Int = 10
-  legend_itemsizing::String = LAYOUT_ITEMSIZING_TRACE
-  legend_itemwidth::Int = 30
-  legend_itemclick::Union{String,Bool} = LAYOUT_CLICK_TOGGLE
-  legend_itemdoubleclick::Union{String,Bool} = LAYOUT_CLICK_TOGGLEOTHERS
-  legend_x::Union{Int,Float64} = 1.02
-  legend_xanchor::String = LAYOUT_LEFT
-  legend_y::Union{Int,Float64} = 1
-  legend_yanchor::String = LAYOUT_AUTO
-  # TODO: legend_uirevision::Union{Int,String} = ""
-  legend_valign::String = LAYOUT_MIDDLE
-  legend_title_text::String = ""
-  legend_title_font::Font = Font()
-  legend_title_side::String = LAYOUT_LEFT
-  margin_l::Int = 80
-  margin_r::Int = 80
-  margin_t::Int = 100
-  margin_b::Int = 80
-  margin_pad::Int = 0
-  margin_autoexpand::Bool = true
-  autosize::Bool = true
-  width::Union{Int,Nothing} = nothing #700
-  height::Union{Int,Nothing} = nothing #450
-  font::Font = Font()
-  uniformtext_mode::Union{String,Bool} = false
-  uniformtext_minsize::Int = 0
-  separators::String = ".,"
-  paper_bgcolor::String = "#fff"
-  plot_bgcolor::String = "#fff" # TODO: here
-
+  # TODO: implement the following fields in function Stipple.render(pl::PlotLayout...
   autotypenumbers::String = "convert types"
   # TODO: colorscale settings
   colorway::Vector{String} = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
@@ -374,19 +817,7 @@ Base.@kwdef mutable struct PlotLayout
   # TODO: template
   # TODO: meta
   # TODO: computed
-  grid_rows::Union{Int,Nothing} = nothing
-  grid_roworder::String = "top to bottom"
-  grid_columns::Union{Int,Nothing} = nothing
-  # TODO: subplots
-  # TODO: xaxes
-  # TODO: yaxes
-  grid_pattern::String = "coupled"
-  grid_xgap::Float64 = 0.1
-  grid_ygap::Float64 = 0.1
-  grid_domain_x::Vector{Float16} = [0.0, 1.0]
-  grid_domain_y::Vector{Float16} = [0.0, 1.0]
-  grid_xside::String = "bottom plot"
-  grid_yside::String = "left plot"
+
   calendar::String = "gregorian"
   newshape_line_color::String = ""
   newshape_line_width::Int = 4
@@ -399,10 +830,10 @@ Base.@kwdef mutable struct PlotLayout
   activeshape_fillcolor::String = "rgb(255,0,255)"
   activeshape_opacity::Float64 = 0.5
   # TODO: hidesources
-  barmode::String = LAYOUT_GROUP
-  barnorm::String = ""
-  bargap::Float64 = 0.5
-  bargroupgap::Float64 = 0
+  barmode::Union{String,Nothing} = nothing # LAYOUT_GROUP
+  barnorm::Union{String,Nothing} = nothing
+  bargap::Union{Float64,Nothing} = nothing # 0.5
+  bargroupgap::Union{Float64,Nothing} = nothing # 0
   # TODO: hiddenlabels
   # TODO: piecolorway
   extendpiecolors::Bool = true
@@ -437,8 +868,129 @@ function Base.show(io::IO, l::PlotLayout)
     end
   end
 
-  print(output)
+  print(io, output)
 end
+
+#===#
+
+Base.@kwdef mutable struct PlotlyLine
+  # for all Plotly lines:
+  color::Union{String,Nothing} = nothing
+  width::Union{Int,Nothing} = nothing # 2
+  # Scatter - line:
+  shape::Union{String,Nothing} = nothing # "linear" | "spline" | "hv" | "vh" | "hvh" | "vhv"
+  smoothing::Union{Float64,String,Nothing} = nothing
+  dash::Union{String,Nothing} = nothing # "solid", "dot", "dash", "longdash", "dashdot", "longdashdot" or "5px,10px,2px,2px"
+  simplify::Union{Bool,Nothing} = nothing
+  # Scatter - marker - line:
+  cauto::Union{Bool,Nothing} = nothing
+  cmin::Union{Float64,Nothing} = nothing
+  cmax::Union{Float64,Nothing} = nothing
+  cmid::Union{Float64,Nothing} = nothing
+  colorscale::Union{Matrix,String,Nothing} = nothing
+  autocolorscale::Union{Bool,Nothing} = nothing
+  reversescale::Union{Bool,Nothing} = nothing
+  # Box - marker - line
+  outliercolor::Union{String,Nothing} = nothing
+  outlierwidth::Union{Int,Nothing} = nothing # 1
+end
+
+function Base.show(io::IO, pdl::PlotlyLine)
+  output = "Layout Legend: \n"
+  for f in fieldnames(typeof(pdl))
+    prop = getproperty(pdl, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(pdl::PlotlyLine)
+  trace = Dict{Symbol, Any}()
+
+  optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale, :reversescale, :outliercolor, :outlierwidth])
+end
+
+function optionals!(d::Dict, pdl::PlotlyLine, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pdl, o) !== nothing
+      d[o] = getproperty(pdl, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pdl)
+end
+
+#===#
+
+Base.@kwdef mutable struct PlotDataMarker
+  symbol::Union{String,Nothing} = nothing
+  opacity::Union{Float64,Vector{Float64},Nothing} = nothing
+  size::Union{Int,Vector{Int},Nothing} = nothing
+  maxdisplayed::Union{Int,Nothing} = nothing
+  sizeref::Union{Float64,Nothing} = nothing
+  sizemin::Union{Float64,Nothing} = nothing
+  sizemode::Union{String,Nothing} = nothing
+  line::Union{PlotlyLine,Nothing} = nothing
+  # TODO: gradient
+  color::Union{String,Vector{Float64},Nothing} = nothing
+  cauto::Union{Bool,Nothing} = nothing
+  cmin::Union{Float64,Nothing} = nothing
+  cmax::Union{Float64,Nothing} = nothing
+  cmid::Union{Float64,Nothing} = nothing
+  colorscale::Union{Matrix,String,Nothing} = nothing
+  autocolorscale::Union{Bool,Nothing} = nothing
+  reversescale::Union{Bool,Nothing} = nothing
+  showscale::Union{Bool,Nothing} = nothing
+  colorbar::Union{ColorBar,Nothing} = nothing
+  coloraxis::Union{String,Nothing} = nothing
+  # Specific for Pie charts:
+  colors::Union{Vector{String},Nothing} = nothing
+end
+
+function Base.show(io::IO, pdm::PlotDataMarker)
+  output = "Layout Legend: \n"
+  for f in fieldnames(typeof(pdm))
+    prop = getproperty(pdm, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(pdm::PlotDataMarker)
+  trace = Dict{Symbol, Any}()
+  (pdm.line !== nothing) && (trace[:line] = Dict(pdm.line))
+  (pdm.colorbar !== nothing) && (trace[:colorbar] = Dict(pdm.colorbar))
+
+  optionals!(trace, pdm, [:symbol, :opacity, :size, :maxdisplayed, :sizeref, :sizemin,
+      :sizemode, :color, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale,
+      :reversescale, :showscale, :coloraxis, :colors])
+end
+
+function optionals!(d::Dict, pdm::PlotDataMarker, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pdm, o) !== nothing
+      d[o] = getproperty(pdm, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pdm)
+end
+
+#===#
 
 Base.@kwdef mutable struct PlotData
   plot::String = PLOT_TYPE_SCATTER
@@ -470,7 +1022,7 @@ Base.@kwdef mutable struct PlotData
   cmin::Union{Float64,Int,Nothing} = nothing
   color::Union{String,Nothing} = nothing
   coloraxis::Union{String,Nothing} = nothing
-  colorbar::Union{Dict,Nothing} = nothing
+  colorbar::Union{Dict,ColorBar,Nothing} = nothing
   colorscale::Union{Matrix,String,Nothing} = nothing
   columnorder::Union{Vector,Nothing} = nothing
   columnwidth::Union{Float64,Int,Vector,Nothing} = nothing
@@ -489,9 +1041,9 @@ Base.@kwdef mutable struct PlotData
   domain::Union{Dict,Nothing} = nothing
   dx::Union{Int,Nothing} = nothing
   dy::Union{Int,Nothing} = nothing
-  error_x::Union{Dict,Nothing} = nothing
-  error_y::Union{Dict,Nothing} = nothing
-  error_z::Union{Dict,Nothing} = nothing
+  error_x::Union{Dict,ErrorBar,Nothing} = nothing
+  error_y::Union{Dict,ErrorBar,Nothing} = nothing
+  error_z::Union{Dict,ErrorBar,Nothing} = nothing
   facecolor::Union{Vector,Nothing} = nothing
   fill::Union{String,Nothing} = nothing
   fillcolor::Union{String,Nothing} = nothing
@@ -528,10 +1080,10 @@ Base.@kwdef mutable struct PlotData
   legendgroup::Union{String,Nothing} = nothing
   lighting::Union{Dict,Nothing} = nothing
   lightposition::Union{Dict,Nothing} = nothing
-  line::Union{Dict,Nothing} = nothing
+  line::Union{Dict,PlotlyLine,Nothing} = nothing
   low::Union{Vector,Nothing} = nothing
   lowerfence::Union{Vector,Nothing} = nothing
-  marker::Union{Dict,Nothing} = nothing
+  marker::Union{Dict,PlotDataMarker,Nothing} = nothing
   maxdisplayed::Union{Int,Nothing} = nothing
   mean::Union{Vector,Nothing} = nothing
   measure::Union{Vector,Nothing} = nothing
@@ -551,6 +1103,7 @@ Base.@kwdef mutable struct PlotData
   offsetgroup::Union{String,Nothing} = nothing
   opacity::Union{Float64,Nothing} = nothing
   opacityscale::Union{Float64,Int,Vector,String,Nothing} = nothing
+  colormodel::Union{String,Nothing} = nothing # image trace color models: "rgb" | "rgba" | "rgba256" | "hsl" | "hsla"
   open::Union{Vector,Nothing} = nothing
   orientation::Union{String,Nothing} = nothing
   outsidetextfont::Union{Font,Nothing} = nothing
@@ -640,18 +1193,82 @@ end
 
 const Trace = PlotData
 
+# =============
+
+# Reference: https://github.com/plotly/plotly.js/blob/master/src/plot_api/plot_config.js?package=plotly&version=3.6.0
+
+Base.@kwdef mutable struct PlotConfig
+  responsive::Union{Bool,Nothing} = nothing # default: false
+  editable::Union{Bool,Nothing} = nothing # default: false
+  scrollzoom::Union{Bool,String,Nothing} = nothing  # ['cartesian', 'gl3d', 'geo', 'mapbox'], [true, false]; default: gl3d+geo+mapbox'
+  staticplot::Union{Bool,Nothing} = nothing # default: false
+  displaymodebar::Union{Bool,String,Nothing} = nothing # ['hover', true, false], default: "hover"
+  displaylogo::Union{Bool,Nothing} = nothing # default: true
+  toimage_format::Union{String,Nothing} = nothing # one of ["png", "svg", "jpeg", "webp"]
+  toimage_filename::Union{String,Nothing} = nothing # "newplot"
+  toimage_height::Union{Int,Nothing} = nothing # 500
+  toimage_width::Union{Int,Nothing} = nothing # 700
+  toimage_scale::Union{Int,Float64,Nothing} = nothing # 1
+end
+
+function Base.show(io::IO, pc::PlotConfig)
+  output = "configuration: \n"
+  for f in fieldnames(typeof(pc))
+    prop = getproperty(pc, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(pc::PlotConfig)
+  trace = Dict{Symbol, Any}()
+
+  if (pc.toimage_format in ["png", "svg", "jpeg", "webp"])
+    d = Dict{Symbol, Any}(:format => pc.toimage_format)
+    d[:filename] = (pc.toimage_filename === nothing) ? "newplot" : pc.toimage_filename
+    d[:height] = (pc.toimage_height === nothing) ? 500 : pc.toimage_height
+    d[:width] = (pc.toimage_width === nothing) ? 700 : pc.toimage_width
+    d[:scale] = (pc.toimage_scale === nothing) ? 1 : pc.toimage_scale
+    trace[:toImageButtonOptions] = d
+  end
+
+  optionals!(trace, pc, [:responsive, :editable, :scrollzoom, :staticplot, :displaymodebar, :displaylogo])
+end
+
+function optionals!(d::Dict, pc::PlotConfig, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pc, o) !== nothing
+      d[o] = getproperty(pc, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pc)
+end
+
+# =============
+
 function plot(fieldname::Symbol;
               layout::Union{Symbol,PlotLayout} = PlotLayout(),
+              config::Union{Symbol,PlotConfig} = PlotConfig(),
               wrap::Function = DEFAULT_WRAPPER,
               args...) :: String
 
-  k = (Symbol(":data"), Symbol(":layout"))
-  v = Any["$fieldname", layout]
+  k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
+  v = Any["$fieldname", layout, config]
 
   wrap() do
     plotly(; args..., NamedTuple{k}(v)...)
   end
 end
+
+# =============
 
 function Base.show(io::IO, pd::PlotData)
   output = "$(pd.plot): \n"
@@ -662,7 +1279,7 @@ function Base.show(io::IO, pd::PlotData)
     end
   end
 
-  print(output)
+  print(io, output)
 end
 
 
@@ -697,25 +1314,31 @@ function Base.Dict(pd::PlotData)
     )
   end
 
+  (pd.line !== nothing) && (trace[:line] = Dict(pd.line))
+  (pd.marker !== nothing) && (trace[:marker] = Dict(pd.marker))
+  (pd.error_x !== nothing) && (trace[:error_x] = Dict(pd.error_x))
+  (pd.error_y !== nothing) && (trace[:error_y] = Dict(pd.error_y))
+  (pd.error_z !== nothing) && (trace[:error_z] = Dict(pd.error_z))
+  (pd.colorbar !== nothing) && (trace[:colorbar] = Dict(pd.colorbar))
+
   optionals!(trace, pd, [:align, :alignmentgroup, :alphahull, :anchor, :aspectratio, :autobinx, :autobiny,
                         :autocolorscale, :autocontour, :automargin,
                         :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
                         :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
-                        :coloraxis, :colorbar, :colorscale, :columnorder, :columnwidth,
+                        :coloraxis, :colorscale, :columnorder, :columnwidth,
                         :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
                         :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
-                        :error_x, :error_y, :error_z,
                         :facecolor, :fill, :fillcolor, :flatshading,
                         :gauge, :groupnorm,
                         :header, :hidesurface, :high, :histfunc, :histnorm,
                         :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
                         :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
                         :j, :jitter, :k,
-                        :labels, :label0, :legendgroup, :lighting, :lightposition, :line, :low, :lowerfence,
-                        :marker, :maxdisplayed, :meanline, :measure, :median, :meta,
+                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
+                        :maxdisplayed, :meanline, :measure, :median, :meta,
                         :mode,
                         :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
-                        :offset, :offsetgroup, :opacity, :opacityscale, :open, :orientation,
+                        :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
                         :points, :pointpos, :projection, :pull,
                         :q1, :q3, :quartilemethod,
                         :reversescale, :rotation,
@@ -751,200 +1374,72 @@ function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} 
   [Dict(pd) for pd in pdv]
 end
 
-
-
 #===#
 
+function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  layout = Dict{Symbol, Any}()
 
-function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
-  layout = Dict(
-    :title => Dict(
-      :text => pl.title_text,
-      :font => Dict(
-        :family => pl.title_font.family,
-        :size => pl.title_font.size,
-        :color => pl.title_font.color
-      ),
-      :xref => pl.title_xref,
-      :yref => pl.title_yref,
-      :x => pl.title_x,
-      :y => pl.title_y,
-      :xanchor => pl.title_xanchor,
-      :yanchor => pl.title_yanchor,
-      :pad => Dict(
-        :t => pl.title_pad_t,
-        :r => pl.title_pad_r,
-        :b => pl.title_pad_b,
-        :l => pl.title_pad_l
-      )
-    ),
-
-    :xaxis => Dict(
-      :title => Dict(
-        :text => pl.xaxis_text,
-        :font => Dict(
-          :family => pl.xaxis_font.family,
-          :size => pl.xaxis_font.size,
-          :color => pl.xaxis_font.color
-        )
-      ),
-      :automargin => pl.xaxis_automargin,
-      :ticks => pl.xaxis_ticks,
-      :showline => pl.xaxis_showline,
-      :zeroline => pl.xaxis_zeroline,
-      :linecolor => pl.xaxis_linecolor,
-      :linewidth => pl.xaxis_linewidth,
-      :mirror => pl.xaxis_mirror,
-      :ticklabelposition => pl.xaxis_ticklabelposition,
-      :showgrid => pl.xaxis_showgrid,
-      :gridcolor => pl.xaxis_gridcolor,
-      :gridwidth => pl.xaxis_gridwidth,
-      :anchor => pl.xaxis_anchor,
-      :position => pl.xaxis_position,
-      :side => pl.xaxis_side,
-      :scaleanchor => pl.xaxis_scaleanchor,
-      :scaleratio => pl.xaxis_scaleratio,
-      :constrain => pl.xaxis_constrain,
-      :constraintoward => pl.xaxis_constraintoward,
-      :autorange => pl.xaxis_autorange,
-      :rangemode => pl.xaxis_rangemode,
-      :fixedrange => pl.xaxis_fixedrange,
-      :type => pl.xaxis_type,
-      :autotypenumbers => pl.xaxis_autotypenumbers,
-      :tickformat => pl.xaxis_tickformat
-    ),
-
-    :yaxis => Dict(
-      :title => Dict(
-        :text => pl.yaxis_text,
-        :font => Dict(
-          :family => pl.yaxis_font.family,
-          :size => pl.yaxis_font.size,
-          :color => pl.yaxis_font.color
-        )
-      ),
-      :automargin => pl.yaxis_automargin,
-      :ticks => pl.yaxis_ticks,
-      :showline => pl.yaxis_showline,
-      :zeroline => pl.yaxis_zeroline,
-      :linecolor => pl.yaxis_linecolor,
-      :linewidth => pl.yaxis_linewidth,
-      :mirror => pl.yaxis_mirror,
-      :ticklabelposition => pl.yaxis_ticklabelposition,
-      :showgrid => pl.yaxis_showgrid,
-      :gridcolor => pl.yaxis_gridcolor,
-      :gridwidth => pl.yaxis_gridwidth,
-      :anchor => pl.yaxis_anchor,
-      :position => pl.yaxis_position,
-      :side => pl.yaxis_side,
-      :scaleanchor => pl.yaxis_scaleanchor,
-      :scaleratio => pl.yaxis_scaleratio,
-      :scaleratio => pl.yaxis_scaleratio,
-      :constrain => pl.yaxis_constrain,
-      :constraintoward => pl.yaxis_constraintoward,
-      :autorange => pl.yaxis_autorange,
-      :rangemode => pl.yaxis_rangemode,
-      :fixedrange => pl.yaxis_fixedrange,
-      :type => pl.yaxis_type,
-      :autotypenumbers => pl.yaxis_autotypenumbers,
-      :tickformat => pl.yaxis_tickformat
-    ),
-
-    :showlegend => pl.showlegend,
-    :legend => Dict(
-      :bordercolor => pl.legend_bordercolor,
-      :font => Dict(
-        :family => pl.legend_font.family,
-        :size => pl.legend_font.size,
-        :color => pl.legend_font.color
-      ),
-      :orientation => pl.legend_orientation,
-      :traceorder => pl.legend_traceorder,
-      :tracegroupgrap => pl.legend_tracegroupgap,
-      :itemsizing => pl.legend_itemsizing,
-      :itemwidth => pl.legend_itemwidth,
-      :itemclick => pl.legend_itemclick,
-      :itemdoubleclick => pl.legend_itemdoubleclick,
-      :x => pl.legend_x,
-      :xanchor => pl.legend_xanchor,
-      :y => pl.legend_y,
-      :yanchor => pl.legend_yanchor,
-      :valign => pl.legend_valign,
-      :title => Dict(
-        :text => pl.legend_title_text,
-        :font => Dict(
-          :family => pl.legend_title_font.family,
-          :size => pl.legend_title_font.size,
-          :color => pl.legend_title_font.color
-        ),
-        :side => pl.legend_title_side,
-      )
-    ),
-    :margin => Dict(
-      :l => pl.margin_l,
-      :r => pl.margin_r,
-      :t => pl.margin_t,
-      :b => pl.margin_b,
-      :pad => pl.margin_pad,
-      :autoexpand => pl.margin_autoexpand
-    ),
-    :autosize => pl.autosize,
-    # :width => pl.width,
-    # :height => pl.height,
-    :font => Dict(
+  if pl.font !== nothing
+    layout[:font] = Dict{Symbol, Any}(
       :family => pl.font.family,
       :size => pl.font.size,
       :color => pl.font.color
-    ),
-    :uniformtext => Dict(
-      :mode => pl.uniformtext_mode,
-      :minsize => pl.uniformtext_minsize
-    ),
-    :separators => pl.separators,
-    :paper_bgcolor => pl.paper_bgcolor,
-    :plot_bgcolor => pl.plot_bgcolor
-  )
-
-  (pl.legend_bgcolor !== nothing) && (layout[:legend_bgcolor] = pl.legend_bgcolor)
-  (pl.width !== nothing) && (layout[:width] = pl.width)
-  (pl.height !== nothing) && (layout[:height] = pl.height)
-
-  (pl.xaxis_range !== nothing) && (layout[:xaxis][:range] = pl.xaxis_range)
-  if pl.xaxis_tickmode == "linear"
-    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
-    layout[:xaxis][:tick0] = pl.xaxis_tick0
-    layout[:xaxis][:dtick] = pl.xaxis_dtick
-  elseif pl.xaxis_tickmode == "array"
-    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
-    layout[:xaxis][:tickvals] = pl.xaxis_tickvals
-    layout[:xaxis][:ticktext] = pl.xaxis_ticktext
-  elseif pl.xaxis_tickmode == "auto"
-    layout[:xaxis][:tickmode] = pl.xaxis_tickmode
-    layout[:xaxis][:nticks] = pl.xaxis_nticks
+    )
   end
 
-  (pl.yaxis_range !== nothing) && (layout[:yaxis][:range] = pl.yaxis_range)
-  if pl.yaxis_tickmode == "linear"
-    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
-    layout[:yaxis][:tick0] = pl.yaxis_tick0
-    layout[:yaxis][:dtick] = pl.yaxis_dtick
-  elseif pl.yaxis_tickmode == "array"
-    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
-    layout[:yaxis][:tickvals] = pl.yaxis_tickvals
-    layout[:yaxis][:ticktext] = pl.yaxis_ticktext
-  elseif pl.yaxis_tickmode == "auto"
-    layout[:yaxis][:tickmode] = pl.yaxis_tickmode
-    layout[:yaxis][:nticks] = pl.yaxis_nticks
+  d1 = Dict{Symbol, Any}()
+  (pl.margin_l !== nothing) && (d1[:l] = pl.margin_l)
+  (pl.margin_r !== nothing) && (d1[:r] = pl.margin_r)
+  (pl.margin_t !== nothing) && (d1[:t] = pl.margin_t)
+  (pl.margin_b !== nothing) && (d1[:b] = pl.margin_b)
+  (pl.margin_pad !== nothing) && (d1[:pad] = pl.margin_pad)
+  (pl.margin_autoexpand !== nothing) && (d1[:autoexpand] = pl.margin_autoexpand)
+  (length(d1) > 0) && (layout[:margin] = d1)
+
+  d2 = Dict{Symbol, Any}()
+  (pl.uniformtext_mode !== nothing) && (d2[:mode] = pl.uniformtext_mode)
+  (pl.uniformtext_minsize !== nothing) && (d2[:minsize] = pl.uniformtext_minsize)
+  (length(d2) > 0) && (layout[:uniformtext] = d2)
+
+  (pl.title !== nothing) && (layout[:title] = Dict(pl.title))
+  (pl.legend !== nothing) && (layout[:legend] = Dict(pl.legend))
+  (pl.annotations !== nothing) && (layout[:annotations] = Dict.(pl.annotations))
+  (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
+
+  optionals!(layout, pl, [ :showlegend, :autosize, :separators, :paper_bgcolor, :plot_bgcolor,
+    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap
+  ])
+
+
+  if pl.xaxis !== nothing
+    for d in Dict.(pl.xaxis)
+      merge!(layout, d)
+    end
   end
 
-  if pl.annotations !== nothing
-    layout[:annotations] = Dict.(pl.annotations)
+  if pl.yaxis !== nothing
+    for d in Dict.(pl.yaxis)
+      merge!(layout, d)
+    end
   end
 
   layout
 end
 
-# #===#
+function optionals!(d::Dict, pl::PlotLayout, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(pl, o) !== nothing
+      d[o] = getproperty(pl, o)
+    end
+  end
 
+  d
+end
+
+function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pl)
+end
+
+# #===#
 
 end
