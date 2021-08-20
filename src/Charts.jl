@@ -1274,6 +1274,10 @@ function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} 
   [Dict(pd) for pd in pdv]
 end
 
+function Stipple.render(pdvv::Vector{Vector{PlotData}}, fieldname::Union{Symbol,Nothing} = nothing)
+  [[Dict(pd) for pd in pdv] for pdv in pdvv]
+end
+
 #===#
 
 function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
@@ -1338,6 +1342,10 @@ end
 
 function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pl)
+end
+
+function Stipple.render(pl::Vector{PlotLayout}, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict.(pl)
 end
 
 # #===#
