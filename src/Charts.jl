@@ -1,14 +1,12 @@
 module Charts
 
-import Genie, Stipple
-import Genie.Renderer.Html: HTMLString, normal_element
-
-using Stipple
+using Genie, Stipple
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
+import Genie.Renderer.Html: HTMLString, normal_element
 
 const DEFAULT_WRAPPER = Genie.Renderer.Html.template
 

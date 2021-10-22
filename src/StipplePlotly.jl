@@ -1,8 +1,6 @@
 module StipplePlotly
 
-import Genie
-import Stipple
-using Stipple.Reexport
+using Genie, Stipple, Stipple.Reexport
 
 #===#
 
