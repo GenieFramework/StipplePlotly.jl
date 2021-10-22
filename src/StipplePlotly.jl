@@ -6,44 +6,47 @@ using Stipple.Reexport
 
 #===#
 
+const assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
+
+#===#
+
 function deps() :: String
-  Genie.Router.route("/js/stipple/plotly.min.js") do
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="plotly.min")) do
     Genie.Renderer.WebRenderable(
-      read(joinpath(@__DIR__, "..", "files", "js", "plotly.min.js"), String),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="plotly.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
-  Genie.Router.route("/js/stipple/resizesensor.min.js") do
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="resizesensor.min")) do
     Genie.Renderer.WebRenderable(
-      read(joinpath(@__DIR__, "..", "files", "js", "resizesensor.min.js"), String),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="resizesensor.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
-  Genie.Router.route("/js/stipple/lodash.min.js") do
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="lodash.min")) do
     Genie.Renderer.WebRenderable(
-      read(joinpath(@__DIR__, "..", "files", "js", "lodash.min.js"), String),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="lodash.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
-  Genie.Router.route("/js/stipple/vueresize.min.js") do
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")) do
     Genie.Renderer.WebRenderable(
-      read(joinpath(@__DIR__, "..", "files", "js", "vueresize.min.js"), String),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="vueresize.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
-  vueplotly = Genie.Configuration.isprod() ? "vueplotly.min.js" : "vueplotly.js"
-  Genie.Router.route("/js/stipple/$vueplotly") do
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="vueplotly.min")) do
     Genie.Renderer.WebRenderable(
-      read(joinpath(@__DIR__, "..", "files", "js", vueplotly), String),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="vueplotly.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
   string(
-    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/plotly.min.js"),
-    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/resizesensor.min.js"),
-    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/lodash.min.js"),
-    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/vueresize.min.js"),
-    Genie.Renderer.Html.script(src="$(Genie.config.base_path)js/stipple/$vueplotly"),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="resizesensor.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="lodash.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueplotly.min"))
   )
 end
 
