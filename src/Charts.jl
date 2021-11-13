@@ -1,7 +1,7 @@
 module Charts
 
 using Genie, Stipple
-import Genie.Renderer.Html: HTMLString, normal_element
+import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
@@ -60,9 +60,7 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
-function __init__()
-  Genie.Renderer.Html.register_normal_element("plotly", context = Genie.Renderer.Html)
-end
+register_normal_element("plotly", context = @__MODULE__)
 
 Base.@kwdef mutable struct Font
   family::String = raw"'Open Sans', verdana, arial, sans-serif"
@@ -1163,7 +1161,7 @@ function plot(fieldname::Symbol;
   v = Any["$fieldname", layout, config]
 
   wrap() do
-    Genie.Renderer.Html.plotly(; args..., NamedTuple{k}(v)...)
+    plotly(; args..., NamedTuple{k}(v)...)
   end
 end
 
