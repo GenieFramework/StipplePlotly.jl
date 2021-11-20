@@ -58,7 +58,7 @@ include("Charts.jl")
 @reexport using .Charts
 
 function __init__()
-  push!(Stipple.DEPS, deps)
+  Stipple.DEPS[@__MODULE__] = deps
 end
 
 end # module
