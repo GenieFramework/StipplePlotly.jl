@@ -2,5 +2,7 @@ using StipplePlotly
 using Test
 
 @testset "StipplePlotly.jl" begin
-    # Write your tests here.
+
+    @test 1 == 1
+
 end

@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+StipplePlotly = "ec984513-233d-481d-95b0-a3b58b97af2b"
