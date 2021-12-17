@@ -1100,7 +1100,7 @@ Base.@kwdef mutable struct PlotConfig
   scrollzoom::Union{Bool,String,Nothing} = nothing  # ['cartesian', 'gl3d', 'geo', 'mapbox'], [true, false]; default: gl3d+geo+mapbox'
   staticplot::Union{Bool,Nothing} = nothing # default: false
   displaymodebar::Union{Bool,String,Nothing} = nothing # ['hover', true, false], default: "hover"
-  displaylogo::Union{Bool,Nothing} = nothing # default: true
+  displaylogo::Union{Bool,Nothing} = false # default: true
   toimage_format::Union{String,Nothing} = nothing # one of ["png", "svg", "jpeg", "webp"]
   toimage_filename::Union{String,Nothing} = nothing # "newplot"
   toimage_height::Union{Int,Nothing} = nothing # 500
@@ -1153,7 +1153,7 @@ end
 
 function plot(fieldname::Symbol;
               layout::Union{Symbol,PlotLayout} = PlotLayout(),
-              config::Union{Symbol,PlotConfig} = PlotConfig(),
+              config::Union{Symbol,PlotConfig,AbstractString} = PlotConfig(),
               wrap::Function = DEFAULT_WRAPPER,
               args...) :: String
 
