@@ -11,9 +11,9 @@ const assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
 function deps() :: String
   if ! Genie.Assets.external_assets(Stipple.assets_config)
 
-    Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="plotly.min")) do
+    Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="plotly2.min")) do
       Genie.Renderer.WebRenderable(
-        Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="plotly.min.js")),
+        Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="plotly2.min.js")),
         :javascript) |> Genie.Renderer.respond
     end
 
@@ -44,7 +44,7 @@ function deps() :: String
   end
 
   string(
-    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly2.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="resizesensor.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="lodash.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")),
