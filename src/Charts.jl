@@ -828,7 +828,7 @@ end
 #===#
 
 Base.@kwdef mutable struct PlotDataMarker
-  symbol::Union{String,Nothing} = nothing
+  symbol::Union{String, Vector{String},Nothing} = nothing
   opacity::Union{Float64,Vector{Float64},Nothing} = nothing
   size::Union{Int,Vector{Int},Nothing} = nothing
   maxdisplayed::Union{Int,Nothing} = nothing
