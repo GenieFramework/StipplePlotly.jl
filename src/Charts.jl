@@ -837,7 +837,7 @@ Base.@kwdef mutable struct PlotDataMarker
   sizemode::Union{String,Nothing} = nothing
   line::Union{PlotlyLine,Nothing} = nothing
   # TODO: gradient
-  color::Union{String,Vector{Float64},Nothing} = nothing
+  color::Union{String,Vector{Float64},Nothing} = nothing # color= [2.34, 4.3, 34.5, 52.2]
   cauto::Union{Bool,Nothing} = nothing
   cmin::Union{Float64,Nothing} = nothing
   cmax::Union{Float64,Nothing} = nothing
