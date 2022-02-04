@@ -7,8 +7,6 @@ export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorB
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
-const DEFAULT_WRAPPER = Genie.Renderer.Html.template
-
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
 const PLOT_TYPE_SCATTERGL = "scattergl"
@@ -1155,15 +1153,12 @@ end
 function plot(fieldname::Union{Symbol,AbstractString};
               layout::Union{Symbol,PlotLayout,AbstractString} = PlotLayout(),
               config::Union{Symbol,PlotConfig,AbstractString} = PlotConfig(),
-              wrap::Function = DEFAULT_WRAPPER,
               args...) :: String
 
   k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
   v = Any["$fieldname", layout, config]
 
-  wrap() do
-    plotly(; args..., NamedTuple{k}(v)...)
-  end
+  plotly(; args..., NamedTuple{k}(v)...)
 end
 
 # =============
