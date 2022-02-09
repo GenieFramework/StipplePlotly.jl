@@ -1055,7 +1055,7 @@ Base.@kwdef mutable struct PlotData
   w::Union{Vector,Nothing} = nothing
   whiskerwidth::Union{Float64,Nothing} = nothing
   width::Union{Int,Vector{Int},Nothing} = nothing
-  x::Union{Vector,Nothing} = nothing
+  x::Union{Vector,Matrix,Nothing} = nothing
   x0::Union{Int,String,Nothing} = nothing
   xaxis::Union{String,Nothing} = nothing
   xbingroup::Union{String,Nothing} = nothing
@@ -1066,7 +1066,7 @@ Base.@kwdef mutable struct PlotData
   xperiodalignment::Union{String,Nothing} = nothing
   xperiod0::Union{Float64,Int,String,Nothing} = nothing
   xtype::Union{String,Nothing} = nothing
-  y::Union{Vector,Nothing} = nothing
+  y::Union{Vector,Matrix,Nothing} = nothing
   y0::Union{Int,String,Nothing} = nothing
   yaxis::Union{String,Nothing} = nothing
   ybingroup::Union{String,Nothing} = nothing
