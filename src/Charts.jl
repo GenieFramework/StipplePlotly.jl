@@ -1344,6 +1344,8 @@ function Stipple.render(pl::Vector{PlotLayout}, fieldname::Union{Symbol,Nothing}
   Dict.(pl)
 end
 
+Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
+
 # #===#
 
 end

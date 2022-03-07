@@ -5,6 +5,7 @@ version = "0.10.2"
 
 [deps]
 Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
