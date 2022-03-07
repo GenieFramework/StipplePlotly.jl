@@ -82,8 +82,10 @@ function __init__()
     Render a PlotlyBase.Plot
 
     # Example
+    ```julia
     julia> plotly(:plot)
     "<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
+    ```
     """
     function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)
       plot("$p.data"; layout, config, kwargs...)
