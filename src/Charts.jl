@@ -2,6 +2,7 @@ module Charts
 
 using Genie, Stipple
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
+using Requires
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
@@ -60,6 +61,43 @@ const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
 register_normal_element("plotly", context = @__MODULE__)
+
+function __init__()
+  @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
+    # import Charts: plot, plotly
+    function plot(fieldname::Union{Symbol,AbstractString};
+      layout::Union{Symbol,PlotLayout,AbstractString,PlotlyBase.Layout} = PlotLayout(),
+      config::Union{Symbol,PlotConfig,AbstractString,PlotlyBase.PlotConfig} = StipplePlotly.PlotConfig(),
+      args...) :: String
+
+      k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
+      v = Any["$fieldname", layout, config]
+
+      plotly(; args..., NamedTuple{k}(v)...)
+    end
+    
+    """
+    `function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)`
+
+    Render a PlotlyBase.Plot
+
+    # Example
+    ```julia
+    julia> plotly(:plot)
+    "<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
+    ```
+    """
+    function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)
+      plot("$p.data"; layout, config, kwargs...)
+    end
+
+    Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
+    StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
+    StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
+
+    JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
+  end
+end
 
 Base.@kwdef mutable struct Font
   family::String = raw"'Open Sans', verdana, arial, sans-serif"
@@ -1343,6 +1381,8 @@ end
 function Stipple.render(pl::Vector{PlotLayout}, fieldname::Union{Symbol,Nothing} = nothing)
   Dict.(pl)
 end
+
+Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
 
 # #===#
 
