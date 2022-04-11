@@ -1118,7 +1118,7 @@ Base.@kwdef mutable struct PlotData
   yperiod0::Union{Float64,Int,String,Nothing} = nothing
   ytype::Union{String,Nothing} = nothing
   # z::Union{Vector,Matrix,Nothing} = nothing
-  z::Union{Matrix,Nothing} = nothing
+  z::Union{Vector,Nothing} = nothing
   zauto::Union{Bool,Nothing} = nothing
   zcalendar::Union{String,Nothing} = nothing
   zhoverformat::Union{String,Nothing} = nothing
