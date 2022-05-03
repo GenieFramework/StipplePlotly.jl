@@ -6,11 +6,13 @@ using Requires
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
-export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
+export PlotConfig, PlotLayoutTitle, PlotLayoutGeo, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
 const PLOT_TYPE_SCATTERGL = "scattergl"
+const PLOT_TYPE_SCATTERGEO = "scattergeo"
+const PLOT_TYPE_SCATTERPOLAR = "scatterpolar"
 const PLOT_TYPE_BAR = "bar"
 const PLOT_TYPE_PIE = "pie"
 const PLOT_TYPE_HEATMAP = "heatmap"
@@ -576,6 +578,54 @@ function Stipple.render(lav::Vector{PlotLayoutAxis}, fieldname::Union{Symbol,Not
 end
 
 #===#
+# FIXME: Add support for Plot Layout Geo
+Base.@kwdef mutable struct PlotLayoutGeo
+  bgcolor::Union{String, Nothing} = nothing # ""
+  coastlinecolor::Union{String, Nothing} = nothing # ""
+  coastlinewidth::Union{Int, Nothing} = nothing # 1
+  countrycolor::Union{String, Nothing} = nothing # ""
+  countrywidth::Union{Int, Nothing} = nothing # 1
+  resolution::Union{String, Nothing} = nothing # 50
+  scope::Union{String, Nothing} = nothing # "world"
+end
+
+function Base.show(io::IO, plt::PlotLayoutGeo)
+  output = "Layout Geo: \n"
+  for f in fieldnames(typeof(plt))
+    prop = getproperty(plt, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(plt::PlotLayoutGeo)
+  trace = Dict{Symbol, Any}()
+
+
+  optionals!(trace, plt, [:bgcolor, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth,
+                         :resolution, :scope])
+end
+
+function optionals!(d::Dict, plt::PlotLayoutGeo, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(plt, o) !== nothing
+      d[o] = getproperty(plt, o)
+    end
+  end
+
+  d
+end
+
+function Stipple.render(plt::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(plt)
+end
+
+#TODO: PLOTLAYOUTGEO
+
+#===#
 
 Base.@kwdef mutable struct PlotLayoutTitle
   text::Union{String,Nothing} = nothing # ""
@@ -697,6 +747,9 @@ end
 #===#
 
 Base.@kwdef mutable struct PlotLayout
+  geo::Union{PlotLayoutGeo, Nothing} = nothing
+
+
   title::Union{PlotLayoutTitle,Nothing} = nothing
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
   yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
@@ -1015,6 +1068,7 @@ Base.@kwdef mutable struct PlotData
   lighting::Union{Dict,Nothing} = nothing
   lightposition::Union{Dict,Nothing} = nothing
   line::Union{Dict,PlotlyLine,Nothing} = nothing
+  locations::Union{Vector, Nothing} = nothing
   low::Union{Vector,Nothing} = nothing
   lowerfence::Union{Vector,Nothing} = nothing
   marker::Union{Dict,PlotDataMarker,Nothing} = nothing
