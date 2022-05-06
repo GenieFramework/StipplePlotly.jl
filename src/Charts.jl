@@ -589,9 +589,9 @@ Base.@kwdef mutable struct PlotLayoutGeo
   scope::Union{String, Nothing} = nothing # "world"
 end
 
-function Base.show(io::IO, plt::PlotLayoutGeo)
+function Base.show(io::IO, geo::PlotLayoutGeo)
   output = "Layout Geo: \n"
-  for f in fieldnames(typeof(plt))
+  for f in fieldnames(typeof(geo))
     prop = getproperty(plt, f)
     if prop !== nothing
       output *= "$f = $prop \n"
@@ -601,26 +601,24 @@ function Base.show(io::IO, plt::PlotLayoutGeo)
   print(io, output)
 end
 
-function Base.Dict(plt::PlotLayoutGeo)
+function Base.Dict(geo::PlotLayoutGeo)
   trace = Dict{Symbol, Any}()
 
-
-  optionals!(trace, plt, [:bgcolor, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth,
-                         :resolution, :scope])
+  optionals!(trace, geo, [:bgcolor, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth, :resolution, :scope])
 end
 
-function optionals!(d::Dict, plt::PlotLayoutGeo, opts::Vector{Symbol}) :: Dict
+function optionals!(d::Dict, geo::PlotLayoutGeo, opts::Vector{Symbol}) :: Dict
   for o in opts
-    if getproperty(plt, o) !== nothing
-      d[o] = getproperty(plt, o)
+    if getproperty(geo, o) !== nothing
+      d[o] = getproperty(geo, o)
     end
   end
 
   d
 end
 
-function Stipple.render(plt::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = nothing)
-  Dict(plt)
+function Stipple.render(geo::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(geo)
 end
 
 #TODO: PLOTLAYOUTGEO
