@@ -99,6 +99,16 @@ function __init__()
   end
 end
 
+function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(ptype, o) !== nothing
+      d[o] = getproperty(ptype, o)
+    end
+  end
+
+  d
+end
+
 Base.@kwdef mutable struct Font
   family::String = raw"'Open Sans', verdana, arial, sans-serif"
   size::Union{Int,Float64} = 12
@@ -185,16 +195,6 @@ function Base.Dict(cb::ColorBar)
   optionals!(trace, cb, [
     :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor, :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition, :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix, :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
   ])
-end
-
-function optionals!(d::Dict, cb::Any, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(cb, o) !== nothing
-      d[o] = getproperty(cb, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(cb::ColorBar, fieldname::Union{Symbol,Nothing} = nothing)
