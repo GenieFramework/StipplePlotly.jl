@@ -73,7 +73,7 @@ register_normal_element("plotly", context = @__MODULE__)
     "<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
     ```
     """
-    function plotly(p::Symbol; layout = R"$p.layout", config = R"$p.config", kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), kwargs...)
       plot("$p.data"; layout, config, kwargs...)
     end
 
