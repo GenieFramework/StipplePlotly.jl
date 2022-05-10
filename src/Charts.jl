@@ -1399,7 +1399,7 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
   (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
 
   optionals!(layout, pl, [ :showlegend, :autosize, :separators, :paper_bgcolor, :plot_bgcolor,
-    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap
+    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap, :geo
   ])
 
 
