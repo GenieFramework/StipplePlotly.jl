@@ -592,7 +592,7 @@ end
 function Base.show(io::IO, geo::PlotLayoutGeo)
   output = "Layout Geo: \n"
   for f in fieldnames(typeof(geo))
-    prop = getproperty(plt, f)
+    prop = getproperty(geo, f)
     if prop !== nothing
       output *= "$f = $prop \n"
     end
