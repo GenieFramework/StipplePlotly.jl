@@ -681,7 +681,7 @@ Base.@kwdef mutable struct PlotLayout
   showlegend::Union{Bool,Nothing} = nothing # true
   legend::Union{PlotLayoutLegend,Nothing} = nothing
   annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
-  geo::Union{PlotLayoutGeo, Nothing} = nothing
+  geo::Union{PlotLayoutGeo,Nothing} = nothing
   grid::Union{PlotLayoutGrid,Nothing} = nothing
 
   margin_l::Union{Int,Nothing} = nothing # 80
