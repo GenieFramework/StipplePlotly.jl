@@ -1152,7 +1152,9 @@ function plot(data::Union{Symbol,AbstractString};
     isnothing(n) || v[n] != false || (v[n] = js"false")
     v = Symbol.(jsonrender.(v))
   end
-  plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., (k .=> v)...])...)
+  pp = collect(k.=> v)
+  plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
+  plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., pp...])...)
 end
 
 # =============
