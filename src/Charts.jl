@@ -99,6 +99,16 @@ function __init__()
   end
 end
 
+function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(ptype, o) !== nothing
+      d[o] = getproperty(ptype, o)
+    end
+  end
+
+  d
+end
+
 Base.@kwdef mutable struct Font
   family::String = raw"'Open Sans', verdana, arial, sans-serif"
   size::Union{Int,Float64} = 12
@@ -187,16 +197,6 @@ function Base.Dict(cb::ColorBar)
   ])
 end
 
-function optionals!(d::Dict, cb::ColorBar, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(cb, o) !== nothing
-      d[o] = getproperty(cb, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(cb::ColorBar, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(cb)
 end
@@ -269,16 +269,6 @@ function Base.Dict(eb::ErrorBar)
   optionals!(trace, eb, [
     :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus, :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
   ])
-end
-
-function optionals!(d::Dict, eb::ErrorBar, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(eb, o) !== nothing
-      d[o] = getproperty(eb, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(eb::ErrorBar, fieldname::Union{Symbol,Nothing} = nothing)
@@ -367,16 +357,6 @@ function Base.Dict(an::PlotAnnotation)
 
 end
 
-function optionals!(d::Dict, an::PlotAnnotation, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(an, o) !== nothing
-      d[o] = getproperty(an, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(an) for an in anv]
 end
@@ -432,16 +412,6 @@ function Base.Dict(lg::PlotLayoutGrid)
   optionals!(trace, lg, [:rows, :roworder, :columns, :subplots, :xaxes, :yaxes,
                          :pattern, :xgap, :ygap, :xside, :yside])
 
-end
-
-function optionals!(d::Dict, lg::PlotLayoutGrid, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(lg, o) !== nothing
-      d[o] = getproperty(lg, o)
-    end
-  end
-
-  d
 end
 
 #===#
@@ -557,16 +527,6 @@ function Base.Dict(la::PlotLayoutAxis)
   Dict(k => d)
 end
 
-function optionals!(d::Dict, la::PlotLayoutAxis, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(la, o) !== nothing
-      d[o] = getproperty(la, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(la::PlotLayoutAxis, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(la)]
 end
@@ -615,16 +575,6 @@ function Base.Dict(plt::PlotLayoutTitle)
   (length(d) > 0) && (trace[:pad] = d)
 
   optionals!(trace, plt, [:text, :font, :xref, :yref, :x, :y, :xanchor, :yanchor])
-end
-
-function optionals!(d::Dict, plt::PlotLayoutTitle, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(plt, o) !== nothing
-      d[o] = getproperty(plt, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(plt::PlotLayoutTitle, fieldname::Union{Symbol,Nothing} = nothing)
@@ -678,16 +628,6 @@ function Base.Dict(pll::PlotLayoutLegend)
   (length(d) > 0) && (trace[:title] = d)
 
   optionals!(trace, pll, [:bgcolor, :bordercolor, :borderwidth, :font, :orientation, :traceorder, :tracegroupgap, :itemsizing, :itemwidth, :itemclick, :itemdoubleclick, :x, :xanchor, :y, :yanchor, :valign])
-end
-
-function optionals!(d::Dict, pll::PlotLayoutLegend, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pll, o) !== nothing
-      d[o] = getproperty(pll, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} = nothing)
@@ -847,16 +787,6 @@ function Base.Dict(pdl::PlotlyLine)
   optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale, :reversescale, :outliercolor, :outlierwidth])
 end
 
-function optionals!(d::Dict, pdl::PlotlyLine, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pdl, o) !== nothing
-      d[o] = getproperty(pdl, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pdl)
 end
@@ -908,16 +838,6 @@ function Base.Dict(pdm::PlotDataMarker)
   optionals!(trace, pdm, [:symbol, :opacity, :size, :maxdisplayed, :sizeref, :sizemin,
       :sizemode, :color, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale,
       :reversescale, :showscale, :coloraxis, :colors])
-end
-
-function optionals!(d::Dict, pdm::PlotDataMarker, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pdm, o) !== nothing
-      d[o] = getproperty(pdm, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing} = nothing)
@@ -1175,16 +1095,6 @@ function Base.Dict(pc::PlotConfig)
   optionals!(trace, pc, [:responsive, :editable, :scrollzoom, :staticplot, :displaymodebar, :displaylogo])
 end
 
-function optionals!(d::Dict, pc::PlotConfig, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pc, o) !== nothing
-      d[o] = getproperty(pc, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pc)
 end
@@ -1290,16 +1200,6 @@ function Base.Dict(pd::PlotData)
                         :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth])
 end
 
-function optionals!(d::Dict, pd::PlotData, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pd, o) !== nothing
-      d[o] = getproperty(pd, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(pd)]
 end
@@ -1362,16 +1262,6 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
   end
 
   layout
-end
-
-function optionals!(d::Dict, pl::PlotLayout, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pl, o) !== nothing
-      d[o] = getproperty(pl, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
