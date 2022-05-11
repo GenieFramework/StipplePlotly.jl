@@ -567,16 +567,6 @@ function Base.Dict(geo::PlotLayoutGeo)
   optionals!(trace, geo, [:bgcolor, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth, :resolution, :scope])
 end
 
-function optionals!(d::Dict, geo::PlotLayoutGeo, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(geo, o) !== nothing
-      d[o] = getproperty(geo, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(geo::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(geo)
 end
