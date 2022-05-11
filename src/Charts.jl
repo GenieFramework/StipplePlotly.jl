@@ -60,11 +60,12 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
-const DEFAULT_CONFIG_TYPE = Ref(Charts.PlotConfig)
+const DEFAULT_CONFIG_TYPE = Ref{DataType}()
 
 register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
+  DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
     DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
   end  
