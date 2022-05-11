@@ -1,6 +1,6 @@
 module Charts
 
-using Genie, Stipple
+using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 
@@ -61,43 +61,41 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
+const DEFAULT_CONFIG_TYPE = Ref{DataType}()
+
 register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
+  DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
-    # import Charts: plot, plotly
-    function plot(fieldname::Union{Symbol,AbstractString};
-      layout::Union{Symbol,PlotLayout,AbstractString,PlotlyBase.Layout} = PlotLayout(),
-      config::Union{Symbol,PlotConfig,AbstractString,PlotlyBase.PlotConfig} = StipplePlotly.PlotConfig(),
-      args...) :: String
-
-      k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
-      v = Any["$fieldname", layout, config]
-
-      plotly(; args..., NamedTuple{k}(v)...)
-    end
-    
-    """
-    `function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)`
-
-    Render a PlotlyBase.Plot
-
-    # Example
-    ```julia
-    julia> plotly(:plot)
-    "<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
-    ```
-    """
-    function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)
-      plot("$p.data"; layout, config, kwargs...)
-    end
+    DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
 
     Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
     StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
     StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
-
     JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
-  end
+
+  end  
+end
+
+"""
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+
+This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
+# Example
+```julia
+julia> plotly(:plot)
+"<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
+```
+For multiple plots with a common config or layout a typical usage is
+```julia
+julia> plotly(:plot, config = :config)
+"<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"config\"></plotly>"
+```
+
+"""
+function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+  plot("$p.data"; layout, config, configtype, kwargs...)
 end
 
 function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
@@ -1140,15 +1138,62 @@ end
 
 # =============
 
-function plot(fieldname::Union{Symbol,AbstractString};
-              layout::Union{Symbol,PlotLayout,AbstractString} = PlotLayout(),
-              config::Union{Symbol,PlotConfig,AbstractString} = PlotConfig(),
-              args...) :: String
+function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
+                    mappings::Dict{String,String} = Dict{String,String}())::NamedTuple
 
-  k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
-  v = Any["$fieldname", layout, config]
+  attrs = Pair{Symbol, Any}[]
+  mapped = false
 
-  plotly(; args..., NamedTuple{k}(v)...)
+  for (k,v) in kwargs
+    v === nothing && continue
+    mapped = false
+
+    if haskey(mappings, string(k))
+      k = mappings[string(k)]
+    end
+
+    attr_key = string((isa(v, Symbol) && ! startswith(string(k), ":") &&
+      ! ( startswith(string(k), "v-") || startswith(string(k), "v" * Genie.config.html_parser_char_dash) ) ? ":" : ""), "$k") |> Symbol
+    attr_val = isa(v, Symbol) && ! startswith(string(k), ":") ? Stipple.julia_to_vue(v) : v
+
+    push!(attrs, attr_key => attr_val)
+  end
+
+  NamedTuple(attrs)
+end
+
+function jsonrender(x)
+  replace(json(render(x)), "'" => raw"\'", '"' => ''')
+end
+
+function plot(data::Union{Symbol,AbstractString};
+  layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
+  config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
+  args...) :: String  where {LayoutType, ConfigType}
+
+  plotconfig = render(isnothing(config) ? configtype() : config)
+  plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
+
+  plotlayout = if layout isa AbstractString
+    Symbol(layout)
+  elseif layout isa Symbol
+    layout
+  else
+    Symbol(jsonrender(layout))
+  end
+  k = plotconfig isa AbstractDict ? keys(plotconfig) : collect(fieldnames(configtype))
+  v = if plotconfig isa Union{AbstractString, Symbol}
+    v = Symbol.(plotconfig, ".", string.(k), " || ''")
+  else
+    v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
+    # force display of false value for displaylogo
+    n = findfirst(:displaylogo .== k)
+    isnothing(n) || v[n] != false || (v[n] = js"false")
+    v = Symbol.(jsonrender.(v))
+  end
+  pp = collect(k.=> v)
+  plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
+  plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., pp...])...)
 end
 
 # =============
