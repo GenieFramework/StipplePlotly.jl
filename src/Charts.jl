@@ -68,6 +68,12 @@ function __init__()
   DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
     DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
+
+    Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
+    StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
+    StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
+    JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
+
   end  
 end
 
@@ -1117,6 +1123,10 @@ function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
   NamedTuple(attrs)
 end
 
+function jsonrender(x)
+  replace(json(render(x)), "'" => raw"\'", '"' => ''')
+end
+
 function plot(data::Union{Symbol,AbstractString};
   layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
@@ -1130,17 +1140,17 @@ function plot(data::Union{Symbol,AbstractString};
   elseif layout isa Symbol
     layout
   else
-    Symbol(json(layout))
+    Symbol(jsonrender(layout))
   end
   k = plotconfig isa AbstractDict ? keys(plotconfig) : collect(fieldnames(configtype))
   v = if plotconfig isa Union{AbstractString, Symbol}
-      Symbol.(string.(plotconfig, ".", k))
+    v = Symbol.(plotconfig, ".", string.(k), " || ''")
   else
-      v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
-      # force display of false value for displaylogo
-      n = findfirst(:displaylogo .== k)
-      isnothing(n) || v[n] != false || (v[n] = js"false")
-      v
+    v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
+    # force display of false value for displaylogo
+    n = findfirst(:displaylogo .== k)
+    isnothing(n) || v[n] != false || (v[n] = js"false")
+    v = Symbol.(jsonrender.(v))
   end
   plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., (k .=> v)...])...)
 end
