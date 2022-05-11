@@ -12,7 +12,6 @@ const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
 const PLOT_TYPE_SCATTERGL = "scattergl"
 const PLOT_TYPE_SCATTERGEO = "scattergeo"
-const PLOT_TYPE_SCATTERPOLAR = "scatterpolar"
 const PLOT_TYPE_BAR = "bar"
 const PLOT_TYPE_PIE = "pie"
 const PLOT_TYPE_HEATMAP = "heatmap"
@@ -675,9 +674,6 @@ end
 #===#
 
 Base.@kwdef mutable struct PlotLayout
-  geo::Union{PlotLayoutGeo, Nothing} = nothing
-
-
   title::Union{PlotLayoutTitle,Nothing} = nothing
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
   yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
@@ -685,6 +681,7 @@ Base.@kwdef mutable struct PlotLayout
   showlegend::Union{Bool,Nothing} = nothing # true
   legend::Union{PlotLayoutLegend,Nothing} = nothing
   annotations::Union{Vector{PlotAnnotation},Nothing} = nothing
+  geo::Union{PlotLayoutGeo, Nothing} = nothing
   grid::Union{PlotLayoutGrid,Nothing} = nothing
 
   margin_l::Union{Int,Nothing} = nothing # 80
