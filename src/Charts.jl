@@ -2,6 +2,7 @@ module Charts
 
 using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
+using Requires
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
 export PlotLayoutGrid, PlotLayoutAxis
@@ -59,11 +60,18 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
+const DEFAULT_CONFIG_TYPE = Ref(Charts.PlotConfig)
+
 register_normal_element("plotly", context = @__MODULE__)
 
-    
+function __init__()
+  @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
+    DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
+  end  
+end
+
 """
-    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
 
 This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
 # Example
@@ -78,8 +86,8 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), kwargs...)
-  plot("$p.data"; layout, config, kwargs...)
+function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+  plot("$p.data"; layout, config, configtype, kwargs...)
 end
 
 function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
@@ -1121,16 +1129,16 @@ function plot(data::Union{Symbol,AbstractString};
   elseif layout isa Symbol
     layout
   else
-    render(layout)
+    Symbol(json(layout))
   end
   k = plotconfig isa AbstractDict ? keys(plotconfig) : collect(fieldnames(configtype))
   v = if plotconfig isa Union{AbstractString, Symbol}
       Symbol.(string.(plotconfig, ".", k))
   else
       v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
-      # force display of false value
+      # force display of false value for displaylogo
       n = findfirst(:displaylogo .== k)
-      isnothing(n) || v[n] == true || (v[n] = js"false")
+      isnothing(n) || v[n] != false || (v[n] = js"false")
       v
   end
   plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., (k .=> v)...])...)

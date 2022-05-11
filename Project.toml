@@ -5,10 +5,12 @@ version = "0.11.0"
 
 [deps]
 Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
 Genie = "4"
+Requires = "1"
 Stipple = "0.23"
 julia = "1.6"
 
