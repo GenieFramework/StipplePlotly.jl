@@ -973,7 +973,7 @@ Base.@kwdef mutable struct PlotData
   lighting::Union{Dict,Nothing} = nothing
   lightposition::Union{Dict,Nothing} = nothing
   line::Union{Dict,PlotlyLine,Nothing} = nothing
-  locations::Union{Vector, Nothing} = nothing
+  locations::Union{Vector,Nothing} = nothing
   low::Union{Vector,Nothing} = nothing
   lowerfence::Union{Vector,Nothing} = nothing
   marker::Union{Dict,PlotDataMarker,Nothing} = nothing
