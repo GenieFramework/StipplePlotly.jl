@@ -18,6 +18,7 @@ const PLOT_TYPE_HEATMAP = "heatmap"
 const PLOT_TYPE_HEATMAPGL = "heatmapgl"
 const PLOT_TYPE_IMAGE = "image"
 const PLOT_TYPE_CONTOUR = "contour"
+const PLOT_TYPE_CHOROPLETH = "choropleth"
 const PLOT_TYPE_TABLE = "table"
 const PLOT_TYPE_BOX = "box"
 const PLOT_TYPE_VIOLIN = "violin"
@@ -972,6 +973,7 @@ Base.@kwdef mutable struct PlotData
   lightposition::Union{Dict,Nothing} = nothing
   line::Union{Dict,PlotlyLine,Nothing} = nothing
   locations::Union{Vector,Nothing} = nothing
+  locationmode::Union{String,Nothing} = nothing
   low::Union{Vector,Nothing} = nothing
   lowerfence::Union{Vector,Nothing} = nothing
   marker::Union{Dict,PlotDataMarker,Nothing} = nothing
@@ -1262,8 +1264,8 @@ function Base.Dict(pd::PlotData)
                         :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
                         :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
                         :j, :jitter, :k,
-                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
-                        :maxdisplayed, :meanline, :measure, :median, :meta,
+                        :labels, :label0, :legendgroup, :lighting, :lightposition, :locations, :locationmode, :low, :lowerfence,
+                        :marker, :maxdisplayed, :meanline, :measure, :median, :meta,
                         :mode,
                         :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
                         :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
