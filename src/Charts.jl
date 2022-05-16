@@ -93,8 +93,8 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
-  plot("$p.data"; layout, config, configtype, kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+  plot("$p.data", args...; layout, config, configtype, kwargs...)
 end
 
 function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
@@ -1127,10 +1127,10 @@ function jsonrender(x)
   replace(json(render(x)), "'" => raw"\'", '"' => ''')
 end
 
-function plot(data::Union{Symbol,AbstractString};
+function plot(data::Union{Symbol,AbstractString}, args...;
   layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
-  args...) :: String  where {LayoutType, ConfigType}
+  kwargs...) :: String  where {LayoutType, ConfigType}
 
   plotconfig = render(isnothing(config) ? configtype() : config)
   plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
@@ -1154,7 +1154,7 @@ function plot(data::Union{Symbol,AbstractString};
   end
   pp = collect(k.=> v)
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
-  plotly(; attributes([:data => Symbol(data), :layout => plotlayout, args..., pp...])...)
+  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp...])...)
 end
 
 # =============
