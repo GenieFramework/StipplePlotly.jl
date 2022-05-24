@@ -2,6 +2,7 @@ module Charts
 
 # @reexport using .Layouts
 # import Layouts: PlotLayoutMapbox, Mcenter
+using Layouts
 
 using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element

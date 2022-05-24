@@ -59,8 +59,8 @@ end
 include("Charts.jl")
 @reexport using .Charts
 
-# include("Layouts.jl")
-# @reexport using .Layouts
+include("Layouts.jl")
+@reexport using .Layouts
 
 function __init__()
   deps_routes()
