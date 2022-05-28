@@ -37,6 +37,8 @@ function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
   d
 end
 
+#===#
+
 Base.@kwdef mutable struct Font
   family::String = raw"'Open Sans', verdana, arial, sans-serif"
   size::Union{Int,Float64} = 12
@@ -52,6 +54,32 @@ end
 Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
 
 Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
+
+Base.@kwdef mutable struct Protation
+  lon::Union{Float64, Int64} = -234
+  lat::Union{Float64, Int64} = -234
+  roll::Union{Float64, Int64} = -234
+end
+
+function PRotation(lon::Union{Float64, Int64}, lat::Union{Float64, Int64}, roll::Union{Float64, Int64})
+  pr = Protation()
+  pr.lon = lon
+  pr.lat = lat
+  pr.roll = roll
+  return pr
+end
+
+Base.@kwdef mutable struct Mcenter
+  lon::Union{Float64, Int64} = -234
+  lat::Union{Float64, Int64} = -234
+end
+
+function MCenter(lon::Union{Float64, Int64}, lat::Union{Float64, Int64})
+  mc = Mcenter()
+  mc.lon = lon
+  mc.lat = lat
+  return mc
+end
 
 #===#
 
@@ -121,7 +149,10 @@ function Base.Dict(cb::ColorBar)
   (length(d) > 0) && (trace[:title] = d)
 
   optionals!(trace, cb, [
-    :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor, :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition, :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix, :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
+    :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor,
+    :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition,
+    :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix,
+    :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
   ])
 end
 
@@ -195,7 +226,8 @@ function Base.Dict(eb::ErrorBar)
   trace = Dict{Symbol, Any}()
 
   optionals!(trace, eb, [
-    :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus, :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
+    :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus,
+    :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
   ])
 end
 
@@ -288,6 +320,8 @@ end
 function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(an) for an in anv]
 end
+
+#===#
 
 Base.@kwdef mutable struct PlotLayoutAxis
   xy::String = "x" # "x" or "y"
@@ -408,6 +442,8 @@ function Stipple.render(lav::Vector{PlotLayoutAxis}, fieldname::Union{Symbol,Not
   [Dict(la) for la in lav]
 end
 
+#===#
+
 Base.@kwdef mutable struct PlotLayoutTitle
   text::Union{String,Nothing} = nothing # ""
   font::Union{Font,Nothing} = nothing # Font()
@@ -451,6 +487,8 @@ end
 function Stipple.render(plt::PlotLayoutTitle, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(plt)
 end
+
+#===#
 
 Base.@kwdef mutable struct PlotLayoutLegend
   bgcolor::Union{String,Nothing} = nothing
@@ -503,6 +541,8 @@ function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} 
   Dict(pll)
 end
 
+#===#
+
 Base.@kwdef mutable struct PlotLayoutGrid
   rows::Union{Int,Nothing} = nothing # >= 1
   roworder::Union{String,Nothing} = nothing # "top to bottom" | "bottom to top"
@@ -554,19 +594,7 @@ function Base.Dict(lg::PlotLayoutGrid)
 
 end
 
-Base.@kwdef mutable struct Protation
-  lon::Union{Float64, Int64} = -234
-  lat::Union{Float64, Int64} = -234
-  roll::Union{Float64, Int64} = -234
-end
-
-function PRotation(lon::Union{Float64, Int64}, lat::Union{Float64, Int64}, roll::Union{Float64, Int64})
-  pr = Protation()
-  pr.lon = lon
-  pr.lat = lat
-  pr.roll = roll
-  return pr
-end
+#===#
 
 Base.@kwdef mutable struct GeoProjection
   parallels::Union{Vector{Float64},Nothing} = nothing
@@ -599,17 +627,7 @@ function Stipple.render(proj::GeoProjection, fieldname::Union{Symbol,Nothing} = 
   Dict(proj)
 end
 
-Base.@kwdef mutable struct Mcenter
-  lon::Union{Float64, Int64} = -234
-  lat::Union{Float64, Int64} = -234
-end
-
-function MCenter(lon::Union{Float64, Int64}, lat::Union{Float64, Int64})
-  mc = Mcenter()
-  mc.lon = lon
-  mc.lat = lat
-  return mc
-end
+#===#
 
 Base.@kwdef mutable struct PlotLayoutGeo
   bgcolor::Union{String, Nothing} = nothing # ""
@@ -665,6 +683,8 @@ function Stipple.render(geo::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = n
   Dict(geo)
 end
 
+#===#
+
 Base.@kwdef mutable struct PlotLayoutMapbox
   style::Union{String, Nothing} = nothing # "open-street-map"
   zoom::Union{Float64, Nothing} = nothing # 0
@@ -692,6 +712,8 @@ end
 function Stipple.render(mapbox::PlotLayoutMapbox, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(map)
 end
+
+#===#
 
 Base.@kwdef mutable struct PlotLayout
   title::Union{PlotLayoutTitle,Nothing} = nothing
@@ -802,6 +824,5 @@ function Base.show(io::IO, l::PlotLayout)
 
   print(io, output)
 end
-
 
 end
