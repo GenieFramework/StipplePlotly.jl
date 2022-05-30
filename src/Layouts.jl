@@ -641,6 +641,8 @@ Base.@kwdef mutable struct PlotLayoutGeo
   framewidth::Union{Int, Nothing} = nothing # 0
   lakecolor::Union{String, Nothing} = nothing # ""
   landcolor::Union{String, Nothing} = nothing # ""
+  lataxis::Union{PlotLayoutAxis,Nothing} = nothing
+  lonaxis::Union{PlotLayoutAxis,Nothing} = nothing
   oceancolor::Union{String, Nothing} = nothing # ""
   geoprojection::Union{GeoProjection, Nothing} = nothing
   resolution::Union{String, Nothing} = nothing # 50
