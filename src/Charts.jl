@@ -30,6 +30,7 @@ const PLOT_TYPE_HEATMAPGL = "heatmapgl"
 const PLOT_TYPE_IMAGE = "image"
 const PLOT_TYPE_CONTOUR = "contour"
 const PLOT_TYPE_CHOROPLETH = "choropleth"
+const PLOT_TYPE_CHOROPLETHMAPBOX = "choroplethmapbox"
 const PLOT_TYPE_TABLE = "table"
 const PLOT_TYPE_BOX = "box"
 const PLOT_TYPE_VIOLIN = "violin"
@@ -243,6 +244,7 @@ Base.@kwdef mutable struct PlotData
   fillcolor::Union{String,Nothing} = nothing
   flatshading::Union{Bool,Nothing} = nothing
   gauge::Union{Dict,Nothing} = nothing
+  geojson::Union{String,Nothing} = nothing
   groupnorm::Union{String,Nothing} = nothing
   header::Union{Dict,Nothing} = nothing
   hidesurface::Union{Bool,Nothing} = nothing
@@ -410,6 +412,7 @@ Base.@kwdef mutable struct PlotConfig
   toimage_height::Union{Int,Nothing} = nothing # 500
   toimage_width::Union{Int,Nothing} = nothing # 700
   toimage_scale::Union{Int,Float64,Nothing} = nothing # 1
+  mapbox_access_token::Union{String,Nothing} = nothing
 end
 
 function Base.show(io::IO, pc::PlotConfig)
@@ -433,6 +436,7 @@ function Base.Dict(pc::PlotConfig)
     d[:height] = (pc.toimage_height === nothing) ? 500 : pc.toimage_height
     d[:width] = (pc.toimage_width === nothing) ? 700 : pc.toimage_width
     d[:scale] = (pc.toimage_scale === nothing) ? 1 : pc.toimage_scale
+    d[:mapboxAccessToken] = (pc.mapbox_access_token === nothing) ? "" : pc.mapbox_access_token
     trace[:toImageButtonOptions] = d
   end
 
@@ -564,7 +568,7 @@ function Base.Dict(pd::PlotData)
                         :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
                         :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
                         :facecolor, :fill, :fillcolor, :flatshading,
-                        :gauge, :groupnorm,
+                        :gauge, :geojson, :groupnorm,
                         :header, :hidesurface, :high, :histfunc, :histnorm,
                         :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
                         :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
