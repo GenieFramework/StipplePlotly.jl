@@ -82,8 +82,37 @@ function MCenter(lon::Union{Float64, Int64}, lat::Union{Float64, Int64})
 end
 
 #===#
+"""
+    PlotDataMarker()
 
+----------
+# Examples
+----------
+
+```
+julia> marker = PlotDataMarker(
+  size = [20, 30, 15, 10],
+  color = [10.0, 20.0, 40.0, 50.0],
+  cmin = 0.0,
+  cmax = 50.0,
+  colorscale = "Greens",
+  colorbar = ColorBar(title_text = "Some rate", ticksuffix = "%", showticksuffix = "last"),
+  line = PlotlyLine(color = "black")
+)
+```
+
+-----------
+# Properties
+-----------
+* `bgcolor::String` - Sets the color of padded area.
+* `bordercolor::String` - Sets the axis line color. Default = `"#444"`
+"""
 Base.@kwdef mutable struct ColorBar
+  bgcolor::Union{String,Nothing} = nothing # "rgba(0,0,0,0)"
+  bordercolor::Union{String,Nothing} = nothing # "#444"
+
+
+
   thicknessmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is pixels
   thickness::Union{Int,Nothing} = nothing # 30
   lenmode::Union{String,Nothing} = nothing # "fraction" | "pixels", default is fraction
@@ -94,9 +123,9 @@ Base.@kwdef mutable struct ColorBar
   yanchor::Union{String,Nothing} = nothing # "top" | "middle" | "bottom", default is middle
   ypad::Union{Int,Nothing} = nothing # 10
   outlinecolor::Union{String,Nothing} = nothing # "#444"
-  bordercolor::Union{String,Nothing} = nothing # "#444"
+  
   borderwidth::Union{Int,Nothing} = nothing # 0
-  bgcolor::Union{String,Nothing} = nothing # "rgba(0,0,0,0)"
+  
   tickmode::Union{String,Nothing} = nothing
   nticks::Union{Int,Nothing} = nothing
   tick0::Union{Float64,Int,String,Nothing} = nothing

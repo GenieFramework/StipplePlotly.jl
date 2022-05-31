@@ -13,6 +13,7 @@ using Stipple.Reexport
                         ColorBar, PlotLayoutGrid, PlotLayoutAxis, PlotLayoutTitle, PlotLayoutLegend
 
 using .Layouts:optionals!
+
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 export PlotData, Trace, plot
