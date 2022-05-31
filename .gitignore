@@ -6,3 +6,4 @@ subplots3.jl
 subplots7.jl
 heatmap1.jl
 .vscode
+docs/build

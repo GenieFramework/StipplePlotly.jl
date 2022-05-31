@@ -106,6 +106,7 @@ julia> marker = PlotDataMarker(
 -----------
 * `bgcolor::String` - Sets the color of padded area.
 * `bordercolor::String` - Sets the axis line color. Default = `"#444"`
+
 """
 Base.@kwdef mutable struct ColorBar
   bgcolor::Union{String,Nothing} = nothing # "rgba(0,0,0,0)"
