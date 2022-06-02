@@ -218,10 +218,11 @@ function Base.Dict(cb::ColorBar)
   (length(d) > 0) && (trace[:title] = d)
 
   optionals!(trace, cb, [
-    :thicknessmode, :thickness, :lenmode, :len, :x, :xanchor, :xpad, :yanchor, :ypad, :outlinecolor, :bordercolor,
-    :borderwidth, :bgcolor, :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :ticks, :ticklabelposition,
-    :ticklen, :tickwidth, :tickcolor, :showticklabels, :tickfont, :tickangle, :tickformat, :tickformatstops, :tickprefix,
-    :showtickprefix, :ticksuffix, :showticksuffix, :separatethousands, :exponentformat, :minexponent, :showexponent
+    :bgcolor, :bordercolor, :borderwidth, :dtick, :exponentformat, :len, :lenmode, :minexponent, :nticks, :orientation,
+    :outlinecolor, :outlinewidth, :separatethousands, :showexponent, :showticklabels, :showtickprefix, :showticksuffix,
+    :thickness, :thicknessmode, :tick0, :tickangle, :tickcolor, :tickfont, :tickformat, :tickformatstops, :ticklabeloverflow,
+    :ticklabelposition, :ticklabelstep, :ticklen, :tickmode, :tickprefix, :ticks, :ticksuffix, :ticktext, :tickvals, :tickwidth,
+    :x, :xanchor, :xpad, :yanchor, :ypad
   ])
 end
 
@@ -324,8 +325,8 @@ function Base.Dict(eb::ErrorBar)
   trace = Dict{Symbol, Any}()
 
   optionals!(trace, eb, [
-    :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus,
-    :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
+    :array, :arrayminus, :color, :copy_ystyle, :symmetric, :thickness,
+    :traceref, :tracerefminus, :type, :value, :valueminus, :visible, :width
   ])
 end
 
