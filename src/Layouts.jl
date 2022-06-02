@@ -335,50 +335,103 @@ function Stipple.render(eb::ErrorBar, fieldname::Union{Symbol,Nothing} = nothing
 end
 
 #===#
+"""
+    PlotAnnotation()
 
+----------
+# Examples
+----------
+
+```
+julia>
+```
+
+-----------
+# Properties
+-----------
+* `align::String` -Sets the horizontal alignment of the `text` within the box. Has an effect only if `text` spans two or more lines (i.e. `text` contains one or more <br> HTML tags) or if an explicit width is set to override the text width. Type: enumerated , one of ( `"left"` | `"center"` | `"right"` ) | Default: `"center"`
+* `arrowcolor::String` -Sets the color of the annotation arrow.
+* `arrowhead::Int` - Sets the end annotation arrow head style.  Type: integer between or equal to `0` and `8` | Default: `1`
+* `arrowside::String` - Sets the annotation arrow head position. Type: flaglist string. Any combination of `"end"`, `"start"` joined with a `"+"` OR `"none"` | Default: `"end"`
+* `arrowsize::Float64` - Sets the size of the end annotation arrow head, relative to `arrowwidth`. A value of 1 (default) gives a head about 3x as wide as the line. Type: number greater than or equal to `0.3` | Default: `1`
+* `arrowwidth::Float64` - Sets the width (in px) of annotation arrow line. Type: number greater than or equal to `0.1`
+* `ax::Union{String,Int,Float64}` - Sets the x component of the arrow tail about the arrow head. If `axref` is `pixel`, a positive (negative) component corresponds to an arrow pointing from right to left (left to right). If `axref` is not `pixel` and is exactly the same as `xref`, this is an absolute value on that axis, like `x`, specified in the same coordinates as `xref`. Type: number or categorical coordinate string
+* `axref::String` - Indicates in what coordinates the tail of the annotation (ax,ay) is specified. If set to a ax axis id (e.g. "ax" or "ax2"), the `ax` position refers to a ax coordinate. If set to "paper", the `ax` position refers to the distance from the left of the plotting area in normalized coordinates where "0" ("1") corresponds to the left (right). If set to a ax axis ID followed by "domain" (separated by a space), the position behaves like for "paper", but refers to the distance in fractions of the domain length from the left of the domain of that axis: e.g., "ax2 domain" refers to the domain of the second ax axis and a ax position of 0.5 refers to the point between the left and the right of the domain of the second ax axis. In order for absolute positioning of the arrow to work, "axref" must be exactly the same as "xref", otherwise "axref" will revert to "pixel" (explained next). For relative positioning, "axref" can be set to "pixel", in which case the "ax" value is specified in pixels relative to "x". Absolute positioning is useful for trendline annotations which should continue to indicate the correct trend when zoomed. Relative positioning is useful for specifying the text offset for an annotated point. Type: enumerated , one of ( `"pixel"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"`) | Default: `"pixel"`
+* `ay::Union{String,Int,Float64}` - Sets the y component of the arrow tail about the arrow head. If `ayref` is `pixel`, a positive (negative) component corresponds to an arrow pointing from bottom to top (top to bottom). If `ayref` is not `pixel` and is exactly the same as `yref`, this is an absolute value on that axis, like `y`, specified in the same coordinates as `yref`. Type: number or categorical coordinate string
+* `ayref::String` - Indicates in what coordinates the tail of the annotation (ax,ay) is specified. If set to a ay axis id (e.g. "ay" or "ay2"), the `ay` position refers to a ay coordinate. If set to "paper", the `ay` position refers to the distance from the bottom of the plotting area in normalized coordinates where "0" ("1") corresponds to the bottom (top). If set to a ay axis ID followed by "domain" (separated by a space), the position behaves like for "paper", but refers to the distance in fractions of the domain length from the bottom of the domain of that axis: e.g., "ay2 domain" refers to the domain of the second ay axis and a ay position of 0.5 refers to the point between the bottom and the top of the domain of the second ay axis. In order for absolute positioning of the arrow to work, "ayref" must be exactly the same as "yref", otherwise "ayref" will revert to "pixel" (explained next). For relative positioning, "ayref" can be set to "pixel", in which case the "ay" value is specified in pixels relative to "y". Absolute positioning is useful for trendline annotations which should continue to indicate the correct trend when zoomed. Relative positioning is useful for specifying the text offset for an annotated point. Type: enumerated , one of ( `"pixel"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"`) | Default: `"pixel"`
+* `bgcolor::String` -Sets the background color of the annotation. Default: `"rgba(0,0,0,0)"`
+* `bordercolor::String` - Sets the color of the border enclosing the annotation `text`. Default: `"rgba(0,0,0,0)"`
+* `borderpad::Int` - Sets the padding (in px) between the `text` and the enclosing border. Default: `1`
+* `borderwidth::Int` - Sets the width (in px) of the border enclosing the annotation `text`. Type: number greater than or equal to 0 | Default: `1`
+* `captureevents::Bool` - Determines whether the annotation text box captures mouse move and click events, or allows those events to pass through to data points in the plot that may be behind the annotation. By default `captureevents` is "false" unless `hovertext` is provided. If you use the event `plotly_clickannotation` without `hovertext` you must explicitly enable `captureevents`.
+* `font::Font` - Sets the annotation text font.
+* `height::Int` - Sets an explicit height for the text box. null (default) lets the text set the box height. Taller text will be clipped. Type: number greater than or equal to `1`
+* `hoverlabel::Dict` -  object containing one or more of the keys listed: `bgcolor` `bordercolor` `font`
+* `name::String` - When used in a template, named items are created in the output figure in addition to any items the figure already has in this array. You can modify these items in the output figure by making your own item with `templateitemname` matching this `name` alongside your modifications (including `visible: false` or `enabled: false` to hide it). Has no effect outside of a template.
+* `opacity::Float64` - Sets the opacity of the annotation (text + arrow). Type: number between or equal to `0` and `1` | Default: `1`
+* `showarrow::Bool` - Determines whether or not the annotation is drawn with an arrow. If "true", `text` is placed near the arrow's tail. If "false", `text` lines up with the `x` and `y` provided. Default: `true`
+* `standoff::Int` - Sets a distance, in pixels, to move the end arrowhead away from the position it is pointing at, for example to point at the edge of a marker independent of zoom. Note that this shortens the arrow from the `ax` / `ay` vector, in contrast to `xshift` / `yshift` which moves everything by this amount.  Type: number greater than or equal to `0` | Default: `0`
+* `startarrowhead::Int` -  Sets the start annotation arrow head style.  Type: integer between or equal to `0` and `8` | Default: `1`
+* `startarrowsize::Int` - Sets the size of the start annotation arrow head, relative to `arrowwidth`. A value of 1 (default) gives a head about 3x as wide as the line.  Type: number greater than or equal to `0.3` | Default: `1`
+* `startstandoff::Int` - Sets a distance, in pixels, to move the start arrowhead away from the position it is pointing at, for example to point at the edge of a marker independent of zoom. Note that this shortens the arrow from the `ax` / `ay` vector, in contrast to `xshift` / `yshift` which moves everything by this amount.  Type: number greater than or equal to `0` | Default: `0`
+* `templateitemname::String` - Used to refer to a named item in this array in the template. Named items from the template will be created even without a matching item in the input figure, but you can modify one by making an item with `templateitemname` matching its `name`, alongside your modifications (including `visible: false` or `enabled: false` to hide it). If there is no template or no matching item, this item will be hidden unless you explicitly show it with `visible: true`.
+* `text::String` - Sets the text associated with the annotation. Plotly uses a subset of HTML tags to do things like newline (<br>), bold (<b></b>), italics (<i></i>), hyperlinks (<a href='...'></a>). Tags <em>, <sup>, <sub> <span> are also supported. Type: string
+* `textangle::Union{Int,Float64}` - Sets the angle at which the `text` is drawn with respect to the horizontal. Type: `angle` | Default: `0`
+* `valign::String` - Sets the vertical alignment of the `text` within the box. Has an effect only if an explicit height is set to override the text height. Type: enumerated , one of ( `"top"` | `"middle"` | `"bottom"`) | Default: `"middle"`
+* `visible::Bool` `visible` - Determines whether or not this annotation is visible. Type: boolean | Default: `true`
+* `width::Int` - Sets an explicit width for the text box. null (default) lets the text set the box width. Wider text will be clipped. Type: number greater than or equal to `1`
+* `x::Union{String,Int,Float64}` - Sets the annotation's x position. If the axis `type` is "log", then you must take the log of your desired range. If the axis `type` is "date", it should be date strings, like date data, though Date objects and unix milliseconds will be accepted and converted to strings. If the axis `type` is "category", it should be numbers, using the scale where each category is assigned a serial number from zero in the order it appears.
+* `xanchor::String` - Sets the text box's horizontal position anchor This anchor binds the `x` position to the "left", "center" or "right" of the annotation. For example, if `x` is set to 1, `xref` to "paper" and `xanchor` to "right" then the right-most portion of the annotation lines up with the right-most edge of the plotting area. If "auto", the anchor is equivalent to "center" for data-referenced annotations or if there is an arrow, whereas for paper-referenced with no arrow, the anchor picked corresponds to the closest side. Type: enumerated , one of ( `"auto"` | `"left"` | `"center"` | `"right"`) | Default: `"auto"`
+* `xref::Union{String,Int,Float64}` - Sets the annotation's x coordinate axis. If set to a x axis id (e.g. "x" or "x2"), the `x` position refers to a x coordinate. If set to "paper", the `x` position refers to the distance from the left of the plotting area in normalized coordinates where "0" ("1") corresponds to the left (right). If set to a x axis ID followed by "domain" (separated by a space), the position behaves like for "paper", but refers to the distance in fractions of the domain length from the left of the domain of that axis: e.g., "x2 domain" refers to the domain of the second x axis and a x position of 0.5 refers to the point between the left and the right of the domain of the second x axis.  Type: enumerated , one of ( `"paper"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"` )
+* `xshift::Union{Int,Float64}` - Shifts the position of the whole annotation and arrow to the right (positive) or left (negative) by this many pixels. Default: `0`
+* `y::Union{String,Int,Float64}` - Sets the annotation's y position. If the axis `type` is "log", then you must take the log of your desired range. If the axis `type` is "date", it should be date strings, like date data, though Date objects and unix milliseconds will be accepted and converted to strings. If the axis `type` is "category", it should be numbers, using the scale where each category is assigned a serial number from zero in the order it appears.
+* `yanchor::Union{String}` - Sets the text box's vertical position anchor This anchor binds the `y` position to the "top", "middle" or "bottom" of the annotation. For example, if `y` is set to 1, `yref` to "paper" and `yanchor` to "top" then the top-most portion of the annotation lines up with the top-most edge of the plotting area. If "auto", the anchor is equivalent to "middle" for data-referenced annotations or if there is an arrow, whereas for paper-referenced with no arrow, the anchor picked corresponds to the closest side. Type: enumerated , one of ( `"auto"` | `"top"` | `"middle"` | `"bottom"`) | Default: `"auto"`
+* `yref::Union{String,Int,Float64}` - Sets the annotation's y coordinate axis. If set to a y axis id (e.g. "y" or "y2"), the `y` position refers to a y coordinate. If set to "paper", the `y` position refers to the distance from the bottom of the plotting area in normalized coordinates where "0" ("1") corresponds to the bottom (top). If set to a y axis ID followed by "domain" (separated by a space), the position behaves like for "paper", but refers to the distance in fractions of the domain length from the bottom of the domain of that axis: e.g., "y2 domain" refers to the domain of the second y axis and a y position of 0.5 refers to the point between the bottom and the top of the domain of the second y axis. Type: enumerated , one of ( `"paper"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"` )
+* `yshift::Union{Int,Float64}` - Shifts the position of the whole annotation and arrow up (positive) or down (negative) by this many pixels. Default: `0`
+"""
 Base.@kwdef mutable struct PlotAnnotation
-  visible::Union{Bool,Nothing} = nothing
-  text::Union{String,Nothing} = nothing
-  textangle::Union{Float64,Int,Nothing} = nothing
-  font::Union{Font,Nothing} = nothing
-  width::Union{Float64,Int,Nothing} = nothing
-  height::Union{Float64,Int,Nothing} = nothing
-  opacity::Union{Float64,Nothing} = nothing
   align::Union{String,Nothing} = nothing
-  valign::Union{String,Nothing} = nothing
+  arrowcolor::Union{String,Nothing} = nothing
+  arrowhead::Union{Int,Nothing} = nothing
+  arrowside::Union{String,Nothing} = nothing
+  arrowsize::Union{Float64,Nothing} = nothing
+  arrowwidth::Union{Float64,Nothing} = nothing
+  ax::Union{String,Int,Float64,Nothing} = nothing
+  axref::Union{String,Nothing} = nothing
+  ay::Union{String,Int,Float64,Nothing} = nothing
+  ayref::Union{String,Nothing} = nothing
   bgcolor::Union{String,Nothing} = nothing
   bordercolor::Union{String,Nothing} = nothing
   borderpad::Union{Int,Nothing} = nothing
   borderwidth::Union{Int,Nothing} = nothing
-  showarrow::Union{Bool,Nothing} = nothing
-  arrowcolor::Union{String,Nothing} = nothing
-  arrowhead::Union{Int,Nothing} = nothing
-  startarrowhead::Union{Int,Nothing} = nothing
-  arrowside::Union{String,Nothing} = nothing
-  arrowsize::Union{Float64,Nothing} = nothing
-  startarrowsize::Union{Float64,Nothing} = nothing
-  arrowwidth::Union{Float64,Nothing} = nothing
-  standoff::Union{Int,Nothing} = nothing
-  startstandoff::Union{Int,Nothing} = nothing
-  ax::Union{String,Int,Float64,Nothing} = nothing
-  ay::Union{String,Int,Float64,Nothing} = nothing
-  axref::Union{String,Nothing} = nothing
-  ayref::Union{String,Nothing} = nothing
-  xref::Union{String,Int,Float64,Nothing} = nothing
-  x::Union{String,Int,Float64,Nothing} = nothing
-  xanchor::Union{String,Nothing} = nothing
-  xshift::Union{Int,Float64,Nothing} = nothing
-  yref::Union{String,Int,Float64,Nothing} = nothing
-  y::Union{String,Int,Float64,Nothing} = nothing
-  yanchor::Union{String,Nothing} = nothing
-  yshift::Union{Int,Float64,Nothing} = nothing
+  captureevents::Union{Bool,Nothing} = nothing
   # TODO: clicktoshow
   # TODO: xclick
   # TODO: yclick
+  font::Union{Font,Nothing} = nothing
+  height::Union{Float64,Int,Nothing} = nothing
   hoverlabel::Union{Dict,Nothing} = nothing
-  captureevents::Union{Bool,Nothing} = nothing
   name::Union{String,Nothing} = nothing
+  opacity::Union{Float64,Nothing} = nothing
+  showarrow::Union{Bool,Nothing} = nothing
+  standoff::Union{Int,Nothing} = nothing
+  startarrowhead::Union{Int,Nothing} = nothing
+  startarrowsize::Union{Float64,Nothing} = nothing
+  startstandoff::Union{Int,Nothing} = nothing
   templateitemname::Union{String,Nothing} = nothing
+  text::Union{String,Nothing} = nothing
+  textangle::Union{Float64,Int,Nothing} = nothing
+  valign::Union{String,Nothing} = nothing
+  visible::Union{Bool,Nothing} = nothing
+  width::Union{Float64,Int,Nothing} = nothing
+  x::Union{String,Int,Float64,Nothing} = nothing
+  xanchor::Union{String,Nothing} = nothing
+  xref::Union{String,Int,Float64,Nothing} = nothing
+  xshift::Union{Int,Float64,Nothing} = nothing
+  y::Union{String,Int,Float64,Nothing} = nothing
+  yanchor::Union{String,Nothing} = nothing
+  yref::Union{String,Int,Float64,Nothing} = nothing
+  yshift::Union{Int,Float64,Nothing} = nothing
 end
 
 function Base.show(io::IO, an::PlotAnnotation)
@@ -408,12 +461,11 @@ function Base.Dict(an::PlotAnnotation)
     trace[:hoverlabel] = an.hoverlabel
   end
 
-  optionals!(trace, an, [:visible, :text, :textangle, :width, :height, :opacity,
-          :align, :valign, :bgcolor, :bordercolor, :borderpad, :borderwidth, :showarrow,
-          :arrowcolor, :arrowhead, :startarrowhead, :arrowside, :arrowsize, :startarrowsize,
-          :arrowwidth, :standoff, :startstandoff, :ax, :ay, :axref, :ayref, :xref, :x,
-          :xanchor, :xshift, :yref, :y, :yanchor, :yshift, :captureevents, :name, :templateitemname])
-
+  optionals!(trace, an, [:align, :arrowcolor, :arrowhead, :arrowside, :arrowsize, :arrowwidth,
+         :ax, :axref, :ay, :ayref, :bgcolor, :bordercolor, :borderpad, :borderwidth, :captureevents,
+         :height, :hoverlabel, :name, :opacity, :showarrow, :standoff, :startarrowhead, :startarrowsize,
+         :startstandoff, :templateitemname, :text, :textangle, :valign, :visible, :width, :x, :xanchor,
+          :xref, :xshift, :y, :yanchor, :yref, :yshift])
 end
 
 function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
