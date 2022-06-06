@@ -473,78 +473,137 @@ function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Not
 end
 
 #===#
+"""
+    PlotAnnotation()
 
+----------
+# Examples
+----------
+
+```
+julia>
+```
+
+-----------
+# Properties
+-----------
+* `anchor::String` - If set to an opposite-letter axis id (e.g. `x2`, `y`), this axis is bound to the corresponding opposite-letter axis. If set to "free", this axis' position is determined by `position`. Type: enumerated , one of ( `"free"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"` |` "/^y([2-9]|[1-9][0-9]+)?( domain)?$/"` )
+* `automargin::Bool` - Determines whether this axis' margin is computed automatically. Type: boolean
+* `autorange::Bool` - Determines whether or not the range of this axis is computed in relation to the input data. See `rangemode` for more info. If `range` is provided, then `autorange` is set to "false". Type: enumerated , one of ( `true` | `false` | `"reversed"` ) | Default: `true`
+* `autotypenumbers::String` - Using "strict" a numeric string in trace data is not converted to a number. Using "convert types" a numeric string in trace data may be treated as a number during automatic axis `type` detection. Defaults to layout.autotypenumbers. Type: enumerated , one of ( `"strict"` | `"convert types"` ) | Default: `"convert types"`
+* `calendar::String` - Sets the calendar system to use for `range` and `tick0` if this is a date axis. This does not set the calendar for interpreting data on this axis, that's specified in the trace or via the global `layout.calendar`. Type: enumerated , one of ( `"gregorian"` | `"chinese"` | `"coptic"` | `"discworld"` | `"ethiopian"` | `"hebrew"` | `"islamic"` | `"julian"` | `"mayan"` | `"nanakshahi"` | `"nepali"` | `"persian"` | `"jalali"` | `"taiwan"` | `"thai"` | `"ummalqura"` ) | Default: `"gregorian"`
+* `categoryarray::Vector{Float64}` - Sets the order in which categories on this axis appear. Only has an effect if `categoryorder` is set to "array". Used with `categoryorder`. Type: Vector 
+* `categoryorder::String` - Specifies the ordering logic for the case of categorical variables. By default, plotly uses "trace", which specifies the order that is present in the data supplied. Set `categoryorder` to "category ascending" or "category descending" if order should be determined by the alphanumerical order of the category names. Set `categoryorder` to "array" to derive the ordering from the attribute `categoryarray`. If a category is not found in the `categoryarray` array, the sorting behavior for that attribute will be identical to the "trace" mode. The unspecified categories will follow the categories in `categoryarray`. Set `categoryorder` to "total ascending" or "total descending" if order should be determined by the numerical order of the values. Similarly, the order can be determined by the min, max, sum, mean or median of all the values. Type: enumerated , one of ( `"trace"` | `"category ascending"` | `"category descending"` | `"array"` | `"total ascending"` | `"total descending"` ) | Default: `"trace"`
+* `constrain::String` - If this axis needs to be compressed (either due to its own `scaleanchor` and `scaleratio` or those of the other axis), determines how that happens: by increasing the "range", or by decreasing the "domain". Default is "domain" for axes containing image traces, "range" otherwise. Type: enumerated , one of ( `"domain"` | `"range"` )
+* `constraintoward::String` - If this axis needs to be compressed (either due to its own `scaleanchor` and `scaleratio` or those of the other axis), determines which direction we push the originally specified plot area. Options are "left", "center" (default), and "right" for x axes, and "top", "middle" (default), and "bottom" for y axes. Type: enumerated , one of ( `"left"` | `"center"` | `"right"` | `"top"` | `"middle"` | `"bottom"` )
+* `dividercolor::String` - Sets the color of the dividers Only has an effect on "multicategory" axes. Type: color | Default: `"#444"`
+* `dividerwidth::Float` - Sets the width (in px) of the dividers Only has an effect on "multicategory" axes. Type: float | Default: `1`
+* `domain::Vector{Float64}` - Sets the domain of this axis (in plot fraction). Type: Vector
+* `dtick::Union{Float64,Int,String}` - Sets the step in-between ticks on this axis. Use with `tick0`. Must be a positive number, or special strings available to "log" and "date" axes. If the axis `type` is "log", then ticks are set every 10^(n"dtick) where n is the tick number. For example, to set a tick mark at 1, 10, 100, 1000, ... set dtick to 1. To set tick marks at 1, 100, 10000, ... set dtick to 2. To set tick marks at 1, 5, 25, 125, 625, 3125, ... set dtick to log_10(5), or 0.69897000433. "log" has several special values; "L<f>", where `f` is a positive number, gives ticks linearly spaced in value (but not position). For example `tick0` = 0.1, `dtick` = "L0.5" will put ticks at 0.1, 0.6, 1.1, 1.6 etc. To show powers of 10 plus small digits between, use "D1" (all digits) or "D2" (only 2 and 5). `tick0` is ignored for "D1" and "D2". If the axis `type` is "date", then you must convert the time to milliseconds. For example, to set the interval between ticks to one day, set `dtick` to 86400000.0. "date" also has special values "M<n>" gives ticks spaced by a number of months. `n` must be a positive integer. To set ticks on the 15th of every third month, set `tick0` to "2000-01-15" and `dtick` to "M3". To set ticks every 4 years, set `dtick` to "M48"
+* `fixedrange::Bool` - Determines whether or not this axis is zoom-able. If true, then zoom is disabled.
+* `font::Font` - Check Font structure for signature.
+* `gridcolor::String` - Sets the color of the grid lines. Type: color | Default: `"#eee"`
+* `gridwidth::Int` - Sets the width (in px) of the grid lines. Type: float | Default: `1`
+* `hoverformat::String` - Sets the hover text formatting rule using d3 formatting mini-languages which are very similar to those in Python. For numbers, see: https://github.com/d3/d3-format/tree/v1.4.5#d3-format. And for dates see: https://github.com/d3/d3-time-format/tree/v2.2.3#locale_format. We add two items to d3's date formatter: "%h" for half of the year as a decimal number as well as "%{n}f" for fractional seconds with n digits. For example, "2016-10-13 09:15:23.456" with tickformat "%H~%M~%S.%2f" would display "09~15~23.46". Default: `""`
+* `layer::String` - Sets the layer on which this axis is displayed. If "above traces", this axis is displayed above all the subplot's traces If "below traces", this axis is displayed below all the subplot's traces, but above the grid lines. Useful when used together with scatter-like traces with `cliponaxis` set to "false" to show markers and/or text nodes above this axis. Type: enumerated , one of ( `"above traces"` | `"below traces"` ) | Default: `"above traces"`
+* `linecolor::String` - Sets the axis line color. Type: color | Default: `"#444"`
+* `linewidth::Int` - Sets the width (in px) of the axis line. Type: float | Default: `1`
+* `minexponent::Int` - Hide SI prefix for 10^n if |n| is below this number. This only has an effect when `tickformat` is "SI" or "B". Type: number greater than or equal to `0` | Default: `3`
+* `mirror::Union{Bool,String}` - Determines if the axis lines or/and ticks are mirrored to the opposite side of the plotting area. If "true", the axis lines are mirrored. If "ticks", the axis lines and ticks are mirrored. If "false", mirroring is disable. If "all", axis lines are mirrored on all shared-axes subplots. If "allticks", axis lines and ticks are mirrored on all shared-axes subplots. Type: `enumerated , one of ( `true` | `"ticks"` | `false` | `"all"` | `"allticks"` )`
+* `nticks::Int` - Specifies the maximum number of ticks for the particular axis. The actual number of ticks will be chosen automatically to be less than or equal to `nticks`. Has an effect only if `tickmode` is set to "auto". Type: number greater than or equal to `0` | Default: `0`
+* `overlaying::String` - If set a same-letter axis id, this axis is overlaid on top of the corresponding same-letter axis, with traces and axes visible for both axes. If "false", this axis does not overlay any same-letter axes. In this case, for axes with overlapping domains only the highest-numbered axis will be visible. Type: enumerated , one of ( `"free"` | `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"` | `"/^y([2-9]|[1-9][0-9]+)?( domain)?$/"` )
+* `position::Float64` - Sets the position of this axis in the plotting space (in normalized coordinates). Only has an effect if `anchor` is set to "free". Type: number between or equal to `0` and `1` | Default: `0`
+* `range::Union{Vector{Int},Vector{Float64}}` - Sets the range of this axis. If the axis `type` is "log", then you must take the log of your desired range (e.g. to set the range from 1 to 100, set the range from 0 to 2). If the axis `type` is "date", it should be date strings, like date data, though Date objects and unix milliseconds will be accepted and converted to strings. If the axis `type` is "category", it should be numbers, using the scale where each category is assigned a serial number from zero in the order it appears.
+* `rangemode::String` - If "normal", the range is computed in relation to the extrema of the input data. If "tozero"`, the range extends to 0, regardless of the input data If "nonnegative", the range is non-negative, regardless of the input data. Applies only to linear axes. Type: enumerated , one of ( `"normal"` | `"tozero"` | `"nonnegative"` ) | Default: `"normal"`
+* `scaleanchor::String` - If set to another axis id (e.g. `x2`, `y`), the range of this axis changes together with the range of the corresponding axis such that the scale of pixels per unit is in a constant ratio. Both axes are still zoomable, but when you zoom one, the other will zoom the same amount, keeping a fixed midpoint. `constrain` and `constraintoward` determine how we enforce the constraint. You can chain these, ie `yaxis: {scaleanchor: "x"}, xaxis2: {scaleanchor: "y"}` but you can only link axes of the same `type`. The linked axis can have the opposite letter (to constrain the aspect ratio) or the same letter (to match scales across subplots). Loops (`yaxis: {scaleanchor: "x"}, xaxis: {scaleanchor: "y"}` or longer) are redundant and the last constraint encountered will be ignored to avoid possible inconsistent constraints via `scaleratio`. Note that setting axes simultaneously in both a `scaleanchor` and a `matches` constraint is currently forbidden. Type: enumerated , one of ( `"/^x([2-9]|[1-9][0-9]+)?( domain)?$/"` | `"/^y([2-9]|[1-9][0-9]+)?( domain)?$/"` )
+* `scaleratio::Int` -  If this axis is linked to another by `scaleanchor`, this determines the pixel to unit scale ratio. For example, if this value is 10, then every unit on this axis spans 10 times the number of pixels as a unit on the linked axis. Use this for example to create an elevation profile where the vertical scale is exaggerated a fixed amount with respect to the horizontal. Type: number greater than or equal to `0` | Default: `1`
+* `showdividers::Bool` - Determines whether or not a dividers are drawn between the category levels of this axis. Only has an effect on "multicategory" axes. Type: boolean | Default: `true`
+* `showexponent::String` - If "all", all exponents are shown besides their significands. If "first", only the exponent of the first tick is shown. If "last", only the exponent of the last tick is shown. If "none", no exponents appear. Type: enumerated , one of ( `"all"` | `"first"` | `"last"` | `"none"` ) | Default: `"all"`
+* `showgrid::Bool` - Determines whether or not grid lines are drawn. If True, the grid lines are drawn at every tick mark. Type: boolean | Default: `true`
+* `showline::Bool` - Determines whether or not a line bounding this axis is drawn. Type: boolean
+* `showspikes::Bool` - Determines whether or not spikes (aka droplines) are drawn for this axis. Note: This only takes affect when hovermode = closest. Type: boolean
+* `showticklabels::Bool` - Determines whether or not the tick labels are drawn.
+* `side::String` - Determines whether a x (y) axis is positioned at the "bottom" ("left") or "top" ("right") of the plotting area. Type: enumerated , one of ( `"top"` | `"bottom"` | `"left"` | `"right"` ) | Default: `"bottom"`
+* `spikecolor::String` - Sets the spike color. If undefined, will use the series color
+* `spikedash::String` - Sets the dash style of lines. Set to a dash type string ("solid", "dot", "dash", "longdash", "dashdot", or "longdashdot") or a dash length list in px (eg "5px,10px,2px,2px").
+* `spikemode::String` - Determines the drawing mode for the spike line If "toaxis", the line is drawn from the data point to the axis the  series is plotted on. If "across", the line is drawn across the entire plot area, and supercedes "toaxis". If "marker", then a marker dot is drawn on the axis the series is plotted on. Type: Any combination of `"toaxis"`, `"across"`, `"marker"` joined with a `"+"` | Examples. `"toaxis"` | `"across"` | `"marker"` | `"toaxis+across"` | `"toaxis+marker"` | `"across+marker"` | `"toaxis+across+marker"` | Default: `"toaxis"`
+* `spikesnap::String` - Determines whether spikelines are stuck to the cursor or to the closest datapoints. Type: enumerated , one of ( `"data"` | `"cursor"` | `"hovered data"`) | Default: `"hovered data"`
+* `spikethickness::Int` - Sets the width (in px) of the zero line. Default: 3
+* `tick0::Union{Float64,Int,String}` - Sets the placement of the first tick on this axis. Use with `dtick`. If the axis `type` is "log", then you must take the log of your starting tick (e.g. to set the starting tick to 100, set the `tick0` to 2) except when `dtick`="L<f>" (see `dtick` for more info). If the axis `type` is "date", it should be a date string, like date data. If the axis `type` is "category", it should be a number, using the scale where each category is assigned a serial number from zero in the order it appears.
+
+
+"""
 Base.@kwdef mutable struct PlotLayoutAxis
-  xy::String = "x" # "x" or "y"
-  index::Int = 1 # 1, 2, 3 etc. for subplots
-
-  visible::Union{Bool,Nothing} = nothing
-  title::Union{String,Nothing} = nothing # "axis title"
-  font::Union{Font,Nothing} = nothing
-  title_text::Union{String,Nothing} = nothing
-  title_font::Union{Font,Nothing} = nothing
-  title_standoff::Union{Int,Nothing} = nothing
+  anchor::Union{String,Nothing} = nothing
   automargin::Union{Bool,Nothing} = nothing
-  ticks::Union{String,Nothing} = nothing
-  showline::Union{Bool,Nothing} = nothing
-  zeroline::Union{Bool,Nothing} = nothing
+  autorange::Union{Bool,String,Nothing} = nothing
+  autotypenumbers::Union{String,Nothing} = nothing
+  calendar::Union{String,Nothing} = nothing
+  categoryarray::Union{Vector{Float64},Nothing} = nothing
+  categoryorder::Union{String,Nothing} = nothing
+  constrain::Union{String,Nothing} = nothing
+  constraintoward::Union{String,Nothing} = nothing
+  dividercolor::Union{String,Nothing} = nothing
+  dividerwidth::Union{Int,Nothing} = nothing
+  domain::Union{Vector{Float64},Nothing} = nothing
+  dtick::Union{Float64,Int,String,Nothing} = nothing
+  fixedrange::Union{Bool,Nothing} = nothing
+  font::Union{Font,Nothing} = nothing
+  gridcolor::Union{String,Nothing} = nothing
+  gridwidth::Union{Int,Nothing} = nothing
+  hoverformat::Union{String,Nothing} = nothing
+  layer::Union{String,Nothing} = nothing
   linecolor::Union{String,Nothing} = nothing
   linewidth::Union{Int,Nothing} = nothing
+  minexponent::Union{Int,Nothing} = nothing
   mirror::Union{Bool,String,Nothing} = nothing
-  ticklabelposition::Union{String,Nothing} = nothing
-  tickson::Union{String,Nothing} = nothing
-  ticklabelmode::Union{String,Nothing} = nothing
-  ticklen::Union{Int,Nothing} = nothing
-  tickwidth::Union{Int,Nothing} = nothing
-  tickcolor::Union{String,Nothing} = nothing
-  showticklabels::Union{Bool,Nothing} = nothing
+  nticks::Union{Int,Nothing} = nothing
+  overlaying::Union{String,Nothing} = nothing
+  position::Union{Float64,Nothing} = nothing
+  range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
+  rangemode::Union{String,Nothing} = nothing
+  scaleanchor::Union{String,Nothing} = nothing
+  scaleratio::Union{Int,Nothing} = nothing
+  showdividers::Union{Bool,Nothing} = nothing
+  showexponent::Union{String,Nothing} = nothing
+  showgrid::Union{Bool,Nothing} = nothing
+  showline::Union{Bool,Nothing} = nothing
   showspikes::Union{Bool,Nothing} = nothing
+  showticklabels::Union{Bool,Nothing} = nothing
+  side::Union{String,Nothing} = nothing
   spikecolor::Union{String,Nothing} = nothing
-  spikethickness::Union{Int,Nothing} = nothing
   spikedash::Union{String,Nothing} = nothing
   spikemode::Union{String,Nothing} = nothing
   spikesnap::Union{String,Nothing} = nothing
-  showgrid::Union{Bool,Nothing} = nothing
-  gridcolor::Union{String,Nothing} = nothing
-  gridwidth::Union{Int,Nothing} = nothing
-  side::Union{String,Nothing} = nothing
-  anchor::Union{String,Nothing} = nothing
-  position::Union{Float64,Nothing} = nothing
-  domain::Union{Vector{Float64},Nothing} = nothing
-  scaleanchor::Union{String,Nothing} = nothing
-  scaleratio::Union{Int,Nothing} = nothing
-  constrain::Union{String,Nothing} = nothing
-  constraintoward::Union{String,Nothing} = nothing
-  autorange::Union{Bool,String,Nothing} = nothing
-  rangemode::Union{String,Nothing} = nothing
-  range::Union{Vector{Int},Vector{Float64},Nothing} = nothing
-  fixedrange::Union{Bool,Nothing} = nothing
-  type::Union{String,Nothing} = nothing
-  autotypenumbers::Union{String,Nothing} = nothing
-  tickmode::Union{String,Nothing} = nothing
-  nticks::Union{Int,Nothing} = nothing
+  spikethickness::Union{Int,Nothing} = nothing
   tick0::Union{Float64,Int,String,Nothing} = nothing
-  dtick::Union{Float64,Int,String,Nothing} = nothing
-  tickvals::Union{Vector{Float64},Vector{Int},Nothing} = nothing
-  ticktext::Union{Vector{String},Nothing} = nothing
-  tickformat::Union{String,Nothing} = nothing
-  tickfont::Union{Font,Nothing} = nothing
   tickangle::Union{String,Int,Float64,Nothing} = nothing
+  tickcolor::Union{String,Nothing} = nothing
+  tickfont::Union{Font,Nothing} = nothing
+  tickformat::Union{String,Nothing} = nothing
+  ticklabelmode::Union{String,Nothing} = nothing
+  ticklabelposition::Union{String,Nothing} = nothing
+  ticklen::Union{Int,Nothing} = nothing
+  tickmode::Union{String,Nothing} = nothing
   tickprefix::Union{String,Nothing} = nothing
+  ticks::Union{String,Nothing} = nothing
+  tickson::Union{String,Nothing} = nothing
   ticksuffix::Union{String,Nothing} = nothing
-  showexponent::Union{String,Nothing} = nothing
-  minexponent::Union{Int,Nothing} = nothing
-  hoverformat::Union{String,Nothing} = nothing
+  ticktext::Union{Vector{String},Nothing} = nothing
+  tickvals::Union{Vector{Float64},Vector{Int},Nothing} = nothing
+  tickwidth::Union{Int,Nothing} = nothing
+  title::Union{String,Nothing} = nothing # "axis title"
+  type::Union{String,Nothing} = nothing
+  visible::Union{Bool,Nothing} = nothing
+  zeroline::Union{Bool,Nothing} = nothing
   zerolinecolor::Union{String,Nothing} = nothing
   zerolinewidth::Union{Int,Nothing} = nothing
-  showdividers::Union{Bool,Nothing} = nothing
-  dividercolor::Union{String,Nothing} = nothing
-  dividerwidth::Union{Int,Nothing} = nothing
-  overlaying::Union{String,Nothing} = nothing
-  layer::Union{String,Nothing} = nothing
-  categoryorder::Union{String,Nothing} = nothing
-  categoryarray::Union{Vector{Float64},Nothing} = nothing
-  calendar::Union{String,Nothing} = nothing
+  # needs special treatment
+  xy::String = "x" # "x" or "y"
+  index::Int = 1 # 1, 2, 3 etc. for subplots
+  title_text::Union{String,Nothing} = nothing
+  title_font::Union{Font,Nothing} = nothing
+  title_standoff::Union{Int,Nothing} = nothing
 end
 
 function Base.show(io::IO, la::PlotLayoutAxis)
@@ -569,17 +628,15 @@ function Base.Dict(la::PlotLayoutAxis)
     trace[:title] = d
   end
 
-  d = optionals!(trace, la, [:visible, :title, :font, :automargin, :ticks, :showline, :zeroline,
-                         :linecolor, :linewidth, :mirror, :ticklabelposition, :showgrid,
-                         :gridcolor, :gridwidth, :side, :anchor, :position, :domain, :scaleanchor,
-                         :scaleratio, :constrain, :constraintoward, :autorange,
-                         :rangemode, :range, :fixedrange, :type, :autotypenumbers,
-                         :tickmode, :nticks, :tick0, :dtick, :tickvals, :ticktext, :tickformat, :tickfont,
-                         :tickangle, :tickprefix, :ticksuffix, :showexponent, :minexponent,
-                         :hoverformat, :zerolinecolor, :zerolinewidth, :showdividers, :dividercolor,
-                         :dividerwidth, :overlaying, :layer, :categoryorder, :categoryarray, :calendar,
-                         :tickson, :ticklabelmode, :ticklen, :tickwidth, :tickcolor, :showticklabels,
-                         :showspikes, :spikecolor, :spikethickness, :spikedash, :spikemode, :spikesnap])
+  d = optionals!(trace, la, [:anchor, :automargin, :autorange, :autotypenumbers, :calendar, :categoryarray,
+         :categoryorder, :constrain, :constraintoward, :dividercolor, :dividerwidth, :domain, :dtick,
+         :fixedrange, :font, :gridcolor, :gridwidth, :hoverformat, :layer, :linecolor, :linewidth,
+         :minexponent, :mirror, :nticks, :overlaying, :position, :range, :rangemode, :scaleanchor,
+         :scaleratio, :showdividers, :showexponent, :showgrid, :showline, :showspikes, :showticklabels,
+         :side, :spikecolor, :spikedash, :spikemode, :spikesnap, :spikethickness, :tick0, :tickangle,
+         :tickcolor, :tickfont, :tickformat, :ticklabelmode, :ticklabelposition, :ticklen, :tickmode,
+         :tickprefix, :ticks, :tickson, :ticksuffix, :ticktext, :tickvals, :tickwidth, :title, :type,
+         :visible, :zeroline, :zerolinecolor, :zerolinewidth])
 
   k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
   Dict(k => d)
