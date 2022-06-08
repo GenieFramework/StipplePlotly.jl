@@ -655,15 +655,16 @@ function Base.Dict(la::PlotLayoutAxis)
     trace[:title] = d
   end
 
-  d = optionals!(trace, la, [:anchor, :automargin, :autorange, :autotypenumbers, :calendar, :categoryarray,
-         :categoryorder, :constrain, :constraintoward, :dividercolor, :dividerwidth, :domain, :dtick,
-         :fixedrange, :font, :gridcolor, :gridwidth, :hoverformat, :layer, :linecolor, :linewidth,
-         :minexponent, :mirror, :nticks, :overlaying, :position, :range, :rangemode, :scaleanchor,
-         :scaleratio, :showdividers, :showexponent, :showgrid, :showline, :showspikes, :showticklabels,
-         :side, :spikecolor, :spikedash, :spikemode, :spikesnap, :spikethickness, :tick0, :tickangle,
-         :tickcolor, :tickfont, :tickformat, :ticklabelmode, :ticklabelposition, :ticklen, :tickmode,
-         :tickprefix, :ticks, :tickson, :ticksuffix, :ticktext, :tickvals, :tickwidth, :title, :type,
-         :visible, :zeroline, :zerolinecolor, :zerolinewidth])
+  d = optionals!(trace, la, [
+    :anchor, :automargin, :autorange, :autotypenumbers, :calendar, :categoryarray,
+    :categoryorder, :constrain, :constraintoward, :dividercolor, :dividerwidth, :domain, :dtick,
+    :fixedrange, :font, :gridcolor, :gridwidth, :hoverformat, :layer, :linecolor, :linewidth,
+    :minexponent, :mirror, :nticks, :overlaying, :position, :range, :rangemode, :scaleanchor,
+    :scaleratio, :showdividers, :showexponent, :showgrid, :showline, :showspikes, :showticklabels,
+    :side, :spikecolor, :spikedash, :spikemode, :spikesnap, :spikethickness, :tick0, :tickangle,
+    :tickcolor, :tickfont, :tickformat, :ticklabelmode, :ticklabelposition, :ticklen, :tickmode,
+    :tickprefix, :ticks, :tickson, :ticksuffix, :ticktext, :tickvals, :tickwidth, :title, :type,
+    :visible, :zeroline, :zerolinecolor, :zerolinewidth])
 
   k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
   Dict(k => d)
@@ -724,28 +725,62 @@ function Stipple.render(plt::PlotLayoutTitle, fieldname::Union{Symbol,Nothing} =
 end
 
 #===#
+"""
+    PlotLayoutLegend()
+
+----------
+# Examples
+----------
+
+```
+julia>
+```
+
+-----------
+# Properties
+-----------
+* `bgcolor::String` -  Sets the legend background color. Defaults to `layout.paper_bgcolor`. Type: `color`
+* `bordercolor::String` - Sets the color of the border enclosing the legend. Type: `color` | Default: `"#444"`
+* `borderwidth::Int` - Sets the width (in px) of the border enclosing the legend. Type: `int` | Default: `0`
+* `font::Font` - Sets the font used to text the legend items. Type: `Font` | Default: `Font()`
+* `itemclick::Union{String,Bool}` - Determines the behavior on legend item click. "toggle" toggles the visibility of the item clicked on the graph. "toggleothers" makes the clicked item the sole visible item on the graph. "false" disables legend item click interactions.  Type: enumerated , one of ( `"toggle"` | `"toggleothers"` | `false` ) | Default: `"toggle"`
+* `itemdoubleclick::Union{String,Bool}` - Determines the behavior on legend item double-click. "toggle" toggles the visibility of the item clicked on the graph. "toggleothers" makes the clicked item the sole visible item on the graph. "false" disables legend item double-click interactions. Type: enumerated , one of ( `"toggle"` | `"toggleothers"` | `false` ) | Default: `"toggleothers"`
+* `itemsizing::String` - Determines if the legend items symbols scale with their corresponding "trace" attributes or remain "constant" independent of the symbol size on the graph.  Type: enumerated , one of ( `"trace"` | `"constant"` ) | Default: `"trace"`
+* `itemwidth::Int` - Sets the width (in px) of the legend item symbols (the part other than the title.text). Type: `int` | Default: `30`
+* `orientation::String` - Sets the orientation of the legend.  Type: enumerated , one of ( `"v"` | `"h"` ) | Default: `"v"`
+* `title_text::String` - Sets the text of the legend's title. Type: `String`
+* `title_font::Font` - Sets the font used for the legend's title. Type: `Font`
+* `title_side::String` - Sets the side of the legend.
+* `tracegroupgap::Int` - Sets the amount of vertical space (in px) between legend groups. Type: number greater than or equal to `0` | Default: `10`
+* `traceorder::String` - Determines the order at which the legend items are displayed. If "normal", the items are displayed top-to-bottom in the same order as the input data. If "reversed", the items are displayed in the opposite order as "normal". If "grouped", the items are displayed in groups (when a trace `legendgroup` is provided). if "grouped+reversed", the items are displayed in the opposite order as "grouped". Type: flaglist string. Any combination of `"reversed"`, `"grouped"` joined with a `"+"` OR `"normal"`. | Examples: Examples: `"reversed"`, `"grouped"`, `"reversed+grouped"`, `"normal"`
+* `valign::String` - Sets the vertical alignment of the symbols with respect to their associated text. Type: enumerated , one of ( `"top"` | `"middle"` | `"bottom"` ) | Default: `"middle"`
+* `x::Union{Int,Float64}` - Sets the x position (in normalized coordinates) of the legend. Defaults to "1.02" for vertical legends and defaults to "0" for horizontal legends.  Type: number between or equal to `-2` and `3`
+* `xanchor::String` - Sets the legend's horizontal position anchor. This anchor binds the `x` position to the "left", "center" or "right" of the legend. Value "auto" anchors legends to the right for `x` values greater than or equal to 2/3, anchors legends to the left for `x` values less than or equal to 1/3 and anchors legends with respect to their center otherwise. Type: enumerated , one of ( `"left"` | `"center"` | `"right"` | `"auto"` ) | Default: `"left"`
+* `y::Union{Int,Float64}` - Sets the y position (in normalized coordinates) of the legend. Defaults to "1" for vertical legends, defaults to "-0.1" for horizontal legends on graphs w/o range sliders and defaults to "1.1" for horizontal legends on graph with one or multiple range sliders. Type: number between or equal to `-2` and `3`
+* `yanchor::String` - Sets the legend's vertical position anchor This anchor binds the `y` position to the "top", "middle" or "bottom" of the legend. Value "auto" anchors legends at their bottom for `y` values less than or equal to 1/3, anchors legends to at their top for `y` values greater than or equal to 2/3 and anchors legends with respect to their middle otherwise. Type: enumerated , one of ( `"top"` | `"middle"` | `"bottom"` | `"auto"` )
+"""
 
 Base.@kwdef mutable struct PlotLayoutLegend
   bgcolor::Union{String,Nothing} = nothing
   bordercolor::Union{String,Nothing} = nothing # "#444"
   borderwidth::Union{Int,Nothing} = nothing # 0
   font::Union{Font,Nothing} = nothing # Font()
-  orientation::Union{String,Nothing} = nothing # LAYOUT_ORIENTATION_VERTICAL
-  traceorder::Union{String,Nothing} = nothing # "normal"
-  tracegroupgap::Union{Int,Nothing} = nothing # 10
-  itemsizing::Union{String,Nothing} = nothing # LAYOUT_ITEMSIZING_TRACE
-  itemwidth::Union{Int,Nothing} = nothing # 30
   itemclick::Union{String,Bool,Nothing} = nothing # LAYOUT_CLICK_TOGGLE
   itemdoubleclick::Union{String,Bool,Nothing} = nothing #  LAYOUT_CLICK_TOGGLEOTHERS
+  itemsizing::Union{String,Nothing} = nothing # LAYOUT_ITEMSIZING_TRACE
+  itemwidth::Union{Int,Nothing} = nothing # 30
+  orientation::Union{String,Nothing} = nothing # LAYOUT_ORIENTATION_VERTICAL
+  title_text::Union{String,Nothing} = nothing # ""
+  title_font::Union{Font,Nothing} = nothing # Font()
+  title_side::Union{String,Nothing} = nothing # LAYOUT_LEFT
+  tracegroupgap::Union{Int,Nothing} = nothing # 10
+  traceorder::Union{String,Nothing} = nothing # "normal"
+  valign::Union{String,Nothing} = nothing # LAYOUT_MIDDLE
   x::Union{Int,Float64,Nothing} = nothing # 1.02
   xanchor::Union{String,Nothing} = nothing # LAYOUT_LEFT
   y::Union{Int,Float64,Nothing} = nothing # 1
   yanchor::Union{String,Nothing} = nothing # LAYOUT_AUTO
   # TODO: uirevision::Union{Int,String} = ""
-  valign::Union{String,Nothing} = nothing # LAYOUT_MIDDLE
-  title_text::Union{String,Nothing} = nothing # ""
-  title_font::Union{Font,Nothing} = nothing # Font()
-  title_side::Union{String,Nothing} = nothing # LAYOUT_LEFT
 end
 
 function Base.show(io::IO, pll::PlotLayoutLegend)
@@ -769,7 +804,9 @@ function Base.Dict(pll::PlotLayoutLegend)
   (pll.title_side !== nothing) && (d[:side] = pll.title_side)
   (length(d) > 0) && (trace[:title] = d)
 
-  optionals!(trace, pll, [:bgcolor, :bordercolor, :borderwidth, :font, :orientation, :traceorder, :tracegroupgap, :itemsizing, :itemwidth, :itemclick, :itemdoubleclick, :x, :xanchor, :y, :yanchor, :valign])
+  optionals!(trace, pll, [
+    :bgcolor, :bordercolor, :borderwidth, :font, :orientation, :tracegroupgap, :traceorder,
+    :itemsizing, :itemwidth, :itemclick, :itemdoubleclick, :x, :xanchor, :y, :yanchor, :valign])
 end
 
 function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} = nothing)
@@ -777,20 +814,47 @@ function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} 
 end
 
 #===#
+"""
+    PlotLayoutGrid()
 
+----------
+# Examples
+----------
+
+```
+julia>
+```
+
+-----------
+# Properties
+-----------
+* `columns::String` - The number of columns in the grid. If you provide a 2D `subplots` array, the length of its longest row is used as the default. If you give an `xaxes` array, its length is used as the default. But it's also possible to have a different length, if you want to leave a row at the end for non-cartesian subplots. Type: integer greater than or equal to `1`
+* `domain_x::Vector{Float64}` - Sets the horizontal domain of this grid subplot (in plot fraction). The first and last cells end exactly at the domain edges, with no grout around the edges. Default: `[0, 1]`
+* `domain_y::Vector{Float64}` - Sets the vertical domain of this grid subplot (in plot fraction). The first and last cells end exactly at the domain edges, with no grout around the edges. Default: `[0, 1]`
+* `pattern::String` - If no `subplots`, `xaxes`, or `yaxes` are given but we do have `rows` and `columns`, we can generate defaults using consecutive axis IDs, in two ways: "coupled" gives one x axis per column and one y axis per row. "independent" uses a new xy pair for each cell, left-to-right across each row then iterating rows according to `roworder`. Type: one of `"coupled"` or `"independent"` | Default. `"coupled"`
+* `roworder::String` - Is the first row the top or the bottom? Note that columns are always enumerated from left to right. enumerated , one of ( `"top to bottom"` | `"bottom to top"` ) | Default: `"top to bottom"`
+* `rows::Int` - The number of rows in the grid. If you provide a 2D `subplots` array or a `yaxes` array, its length is used as the default. But it's also possible to have a different length, if you want to leave a row at the end for non-cartesian subplots. Type: integer greater than or equal to `1`
+* `subplots::Matrix{String}` - Used for freeform grids, where some axes may be shared across subplots but others are not. Each entry should be a cartesian subplot id, like "xy" or "x3y2", or "" to leave that cell empty. You may reuse x axes within the same column, and y axes within the same row. Non-cartesian subplots and traces that support `domain` can place themselves in this grid separately using the `gridcell` attribute.
+* `xaxes::Vector{String}` - Used with `yaxes` when the x and y axes are shared across columns and rows. Each entry should be an x axis id like "x", "x2", etc., or "" to not put an x axis in that column. Entries other than "" must be unique. Ignored if `subplots` is present. If missing but `yaxes` is present, will generate consecutive IDs.
+* `xgap::Float64` - Horizontal space between grid cells, expressed as a fraction of the total width available to one cell. Defaults to 0.1 for coupled-axes grids and 0.2 for independent grids.  Type: number between or equal to `0` and `1`
+* `xside::String` - Sets where the x axis labels and titles go. "bottom" means the very bottom of the grid. "bottom plot" is the lowest plot that each x axis is used in. "top" and "top plot" are similar.  Type: enumerated , one of ( `"bottom"` | `"bottom plot"` | `"top plot"` | `"top"` )  | Default: `"bottom plot"`
+* `yaxes::Vector{String}` - Used with `yaxes` when the x and y axes are shared across columns and rows. Each entry should be an y axis id like "y", "y2", etc., or "" to not put a y axis in that row. Entries other than "" must be unique. Ignored if `subplots` is present. If missing but `xaxes` is present, will generate consecutive IDs.
+* `ygap::Float64` - Vertical space between grid cells, expressed as a fraction of the total height available to one cell. Defaults to 0.1 for coupled-axes grids and 0.3 for independent grids. Type: number between or equal to `0` and `1`
+* `yside::String` - Sets where the y axis labels and titles go. "left" means the very left edge of the grid. "left plot" is the leftmost plot that each y axis is used in. "right" and "right plot" are similar. Type: enumerated , one of ( `"left"` | `"left plot"` | `"right plot"` | `"right"` ) | Default: `"left plot"`
+"""
 Base.@kwdef mutable struct PlotLayoutGrid
-  rows::Union{Int,Nothing} = nothing # >= 1
-  roworder::Union{String,Nothing} = nothing # "top to bottom" | "bottom to top"
   columns::Union{Int,Nothing} = nothing # >= 1
-  subplots::Union{Matrix{String},Nothing} = nothing
-  xaxes::Union{Vector{String},Nothing} = nothing
-  yaxes::Union{Vector{String},Nothing} = nothing
-  pattern::Union{String,Nothing} = nothing # "independent" | "coupled"
-  xgap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
-  ygap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
   domain_x::Union{Vector{Float64},Nothing} = nothing # fraction, e.g [0, 1]
   domain_y::Union{Vector{Float64},Nothing} = nothing # fraction, e.g [0, 1]
+  pattern::Union{String,Nothing} = nothing # "independent" | "coupled"
+  roworder::Union{String,Nothing} = nothing # "top to bottom" | "bottom to top"
+  rows::Union{Int,Nothing} = nothing # >= 1
+  subplots::Union{Matrix{String},Nothing} = nothing
+  xaxes::Union{Vector{String},Nothing} = nothing
+  xgap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
   xside::Union{String,Nothing} = nothing # "bottom" | "bottom plot" | "top plot" | "top"
+  yaxes::Union{Vector{String},Nothing} = nothing
+  ygap::Union{Float64,Nothing} = nothing # [0.0, 1.0]
   yside::Union{String,Nothing} = nothing # "bottom" | "bottom plot" | "top plot" | "top"
 end
 
@@ -824,8 +888,8 @@ function Base.Dict(lg::PlotLayoutGrid)
     )
   end
 
-  optionals!(trace, lg, [:rows, :roworder, :columns, :subplots, :xaxes, :yaxes,
-                         :pattern, :xgap, :ygap, :xside, :yside])
+  optionals!(trace, lg, [:columns, :domain_x, :domain_y :pattern, :roworder,
+               :rows, :subplots, :xaxes, :xgap, :xside, :yaxes, :ygap, :yside])
 
 end
 
@@ -913,7 +977,12 @@ end
 function Base.Dict(geo::PlotLayoutGeo)
   trace = Dict{Symbol, Any}()
 
-  optionals!(trace, geo, [:bgcolor, :center, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth, :fitbounds, :framecolor, :framewidth, :lakecolor, :landcolor, :oceancolor, :geoprojection, :resolution, :rivercolor, :riverwidth, :scope, :showcoastlines, :showcountries, :showframe, :showlakes, :showland, :showocean, :showrivers, :showsubunits, :subunitcolor, :subunitwidth, :uirevision, :visible])
+  optionals!(trace, geo, [
+    :bgcolor, :center, :coastlinecolor, :coastlinewidth, :countrycolor, :countrywidth,
+    :fitbounds, :framecolor, :framewidth, :lakecolor, :landcolor, :oceancolor, :geoprojection,
+    :resolution, :rivercolor, :riverwidth, :scope, :showcoastlines, :showcountries, :showframe,
+    :showlakes, :showland, :showocean, :showrivers, :showsubunits, :subunitcolor, :subunitwidth,
+    :uirevision, :visible])
 end
 
 function Stipple.render(geo::PlotLayoutGeo, fieldname::Union{Symbol,Nothing} = nothing)
