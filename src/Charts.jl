@@ -1,6 +1,6 @@
 module Charts
 
-using Genie, Stipple
+using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 
@@ -60,43 +60,51 @@ const LAYOUT_OVERLAY = "overlay"
 const LAYOUT_GROUP = "group"
 const LAYOUT_STACK = "stack"
 
+const DEFAULT_CONFIG_TYPE = Ref{DataType}()
+
 register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
+  DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
-    # import Charts: plot, plotly
-    function plot(fieldname::Union{Symbol,AbstractString};
-      layout::Union{Symbol,PlotLayout,AbstractString,PlotlyBase.Layout} = PlotLayout(),
-      config::Union{Symbol,PlotConfig,AbstractString,PlotlyBase.PlotConfig} = StipplePlotly.PlotConfig(),
-      args...) :: String
-
-      k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
-      v = Any["$fieldname", layout, config]
-
-      plotly(; args..., NamedTuple{k}(v)...)
-    end
-    
-    """
-    `function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)`
-
-    Render a PlotlyBase.Plot
-
-    # Example
-    ```julia
-    julia> plotly(:plot)
-    "<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
-    ```
-    """
-    function plotly(p::Symbol; layout = "$p.layout", config = "$p.config", kwargs...)
-      plot("$p.data"; layout, config, kwargs...)
-    end
+    DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
 
     Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
     StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
     StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
-
     JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
+
+  end  
+end
+
+"""
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+
+This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
+# Example
+```julia
+julia> plotly(:plot)
+"<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"plot.config\"></plotly>"
+```
+For multiple plots with a common config or layout a typical usage is
+```julia
+julia> plotly(:plot, config = :config)
+"<plotly :data=\"plot.data\" :layout=\"plot.layout\" :config=\"config\"></plotly>"
+```
+
+"""
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+  plot("$p.data", args...; layout, config, configtype, kwargs...)
+end
+
+function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
+  for o in opts
+    if getproperty(ptype, o) !== nothing
+      d[o] = getproperty(ptype, o)
+    end
   end
+
+  d
 end
 
 Base.@kwdef mutable struct Font
@@ -187,16 +195,6 @@ function Base.Dict(cb::ColorBar)
   ])
 end
 
-function optionals!(d::Dict, cb::ColorBar, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(cb, o) !== nothing
-      d[o] = getproperty(cb, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(cb::ColorBar, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(cb)
 end
@@ -269,16 +267,6 @@ function Base.Dict(eb::ErrorBar)
   optionals!(trace, eb, [
     :visible, :type, :symmetric, :array, :arrayminus, :value, :valueminus, :traceref, :tracerefminus, :copy_ystyle, :color, :thickness, :width
   ])
-end
-
-function optionals!(d::Dict, eb::ErrorBar, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(eb, o) !== nothing
-      d[o] = getproperty(eb, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(eb::ErrorBar, fieldname::Union{Symbol,Nothing} = nothing)
@@ -367,16 +355,6 @@ function Base.Dict(an::PlotAnnotation)
 
 end
 
-function optionals!(d::Dict, an::PlotAnnotation, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(an, o) !== nothing
-      d[o] = getproperty(an, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(anv::Vector{PlotAnnotation}, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(an) for an in anv]
 end
@@ -432,16 +410,6 @@ function Base.Dict(lg::PlotLayoutGrid)
   optionals!(trace, lg, [:rows, :roworder, :columns, :subplots, :xaxes, :yaxes,
                          :pattern, :xgap, :ygap, :xside, :yside])
 
-end
-
-function optionals!(d::Dict, lg::PlotLayoutGrid, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(lg, o) !== nothing
-      d[o] = getproperty(lg, o)
-    end
-  end
-
-  d
 end
 
 #===#
@@ -557,16 +525,6 @@ function Base.Dict(la::PlotLayoutAxis)
   Dict(k => d)
 end
 
-function optionals!(d::Dict, la::PlotLayoutAxis, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(la, o) !== nothing
-      d[o] = getproperty(la, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(la::PlotLayoutAxis, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(la)]
 end
@@ -615,16 +573,6 @@ function Base.Dict(plt::PlotLayoutTitle)
   (length(d) > 0) && (trace[:pad] = d)
 
   optionals!(trace, plt, [:text, :font, :xref, :yref, :x, :y, :xanchor, :yanchor])
-end
-
-function optionals!(d::Dict, plt::PlotLayoutTitle, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(plt, o) !== nothing
-      d[o] = getproperty(plt, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(plt::PlotLayoutTitle, fieldname::Union{Symbol,Nothing} = nothing)
@@ -678,16 +626,6 @@ function Base.Dict(pll::PlotLayoutLegend)
   (length(d) > 0) && (trace[:title] = d)
 
   optionals!(trace, pll, [:bgcolor, :bordercolor, :borderwidth, :font, :orientation, :traceorder, :tracegroupgap, :itemsizing, :itemwidth, :itemclick, :itemdoubleclick, :x, :xanchor, :y, :yanchor, :valign])
-end
-
-function optionals!(d::Dict, pll::PlotLayoutLegend, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pll, o) !== nothing
-      d[o] = getproperty(pll, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pll::PlotLayoutLegend, fieldname::Union{Symbol,Nothing} = nothing)
@@ -847,16 +785,6 @@ function Base.Dict(pdl::PlotlyLine)
   optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale, :reversescale, :outliercolor, :outlierwidth])
 end
 
-function optionals!(d::Dict, pdl::PlotlyLine, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pdl, o) !== nothing
-      d[o] = getproperty(pdl, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pdl)
 end
@@ -908,16 +836,6 @@ function Base.Dict(pdm::PlotDataMarker)
   optionals!(trace, pdm, [:symbol, :opacity, :size, :maxdisplayed, :sizeref, :sizemin,
       :sizemode, :color, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale,
       :reversescale, :showscale, :coloraxis, :colors])
-end
-
-function optionals!(d::Dict, pdm::PlotDataMarker, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pdm, o) !== nothing
-      d[o] = getproperty(pdm, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing} = nothing)
@@ -1175,31 +1093,68 @@ function Base.Dict(pc::PlotConfig)
   optionals!(trace, pc, [:responsive, :editable, :scrollzoom, :staticplot, :displaymodebar, :displaylogo])
 end
 
-function optionals!(d::Dict, pc::PlotConfig, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pc, o) !== nothing
-      d[o] = getproperty(pc, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing} = nothing)
   Dict(pc)
 end
 
 # =============
 
-function plot(fieldname::Union{Symbol,AbstractString};
-              layout::Union{Symbol,PlotLayout,AbstractString} = PlotLayout(),
-              config::Union{Symbol,PlotConfig,AbstractString} = PlotConfig(),
-              args...) :: String
+function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
+                    mappings::Dict{String,String} = Dict{String,String}())::NamedTuple
 
-  k = (Symbol(":data"), Symbol(":layout"), Symbol(":config"))
-  v = Any["$fieldname", layout, config]
+  attrs = Pair{Symbol, Any}[]
+  mapped = false
 
-  plotly(; args..., NamedTuple{k}(v)...)
+  for (k,v) in kwargs
+    v === nothing && continue
+    mapped = false
+
+    if haskey(mappings, string(k))
+      k = mappings[string(k)]
+    end
+
+    attr_key = string((isa(v, Symbol) && ! startswith(string(k), ":") &&
+      ! ( startswith(string(k), "v-") || startswith(string(k), "v" * Genie.config.html_parser_char_dash) ) ? ":" : ""), "$k") |> Symbol
+    attr_val = isa(v, Symbol) && ! startswith(string(k), ":") ? Stipple.julia_to_vue(v) : v
+
+    push!(attrs, attr_key => attr_val)
+  end
+
+  NamedTuple(attrs)
+end
+
+function jsonrender(x)
+  replace(json(render(x)), "'" => raw"\'", '"' => ''')
+end
+
+function plot(data::Union{Symbol,AbstractString}, args...;
+  layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
+  config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
+  kwargs...) :: String  where {LayoutType, ConfigType}
+
+  plotconfig = render(isnothing(config) ? configtype() : config)
+  plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
+
+  plotlayout = if layout isa AbstractString
+    Symbol(layout)
+  elseif layout isa Symbol
+    layout
+  else
+    Symbol(jsonrender(layout))
+  end
+  k = plotconfig isa AbstractDict ? keys(plotconfig) : collect(fieldnames(configtype))
+  v = if plotconfig isa Union{AbstractString, Symbol}
+    v = Symbol.(plotconfig, ".", string.(k), " || ''")
+  else
+    v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
+    # force display of false value for displaylogo
+    n = findfirst(:displaylogo .== k)
+    isnothing(n) || v[n] != false || (v[n] = js"false")
+    v = Symbol.(jsonrender.(v))
+  end
+  pp = collect(k.=> v)
+  plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
+  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp...])...)
 end
 
 # =============
@@ -1290,16 +1245,6 @@ function Base.Dict(pd::PlotData)
                         :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth])
 end
 
-function optionals!(d::Dict, pd::PlotData, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pd, o) !== nothing
-      d[o] = getproperty(pd, o)
-    end
-  end
-
-  d
-end
-
 function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
   [Dict(pd)]
 end
@@ -1362,16 +1307,6 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
   end
 
   layout
-end
-
-function optionals!(d::Dict, pl::PlotLayout, opts::Vector{Symbol}) :: Dict
-  for o in opts
-    if getproperty(pl, o) !== nothing
-      d[o] = getproperty(pl, o)
-    end
-  end
-
-  d
 end
 
 function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
