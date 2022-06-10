@@ -4,7 +4,7 @@ using Genie, Stipple, Stipple.Reexport
 
 #===#
 
-assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
+const assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
 
 #===#
 
