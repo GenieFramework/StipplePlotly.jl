@@ -66,6 +66,7 @@ register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
   DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
+
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
     DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
 
@@ -74,7 +75,7 @@ function __init__()
     StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
     JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
 
-  end  
+  end
 end
 
 """
