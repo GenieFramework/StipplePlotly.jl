@@ -60,9 +60,8 @@ include("Charts.jl")
 @reexport using .Charts
 
 function __init__()
+  deps_routes()
   Stipple.deps!(@__MODULE__, deps)
 end
-
-deps_routes()
 
 end # module
