@@ -897,7 +897,7 @@ function Base.Dict(lg::PlotLayoutGrid)
     )
   end
 
-  optionals!(trace, lg, [:columns, :domain_x, :domain_y :pattern, :roworder,
+  optionals!(trace, lg, [:columns, :domain_x, :domain_y, :pattern, :roworder,
                :rows, :subplots, :xaxes, :xgap, :xside, :yaxes, :ygap, :yside])
 
 end

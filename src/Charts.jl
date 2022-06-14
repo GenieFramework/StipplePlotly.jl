@@ -1,12 +1,10 @@
 module Charts
 
-# @reexport using .Layouts
-# import Layouts: PlotLayoutMapbox, Mcenter
-include("Layouts.jl")
-using .Layouts
-
 using Genie, Stipple, StipplePlotly
 using Stipple.Reexport
+
+include("Layouts.jl")
+using .Layouts
 
 @reexport using .Layouts:PlotLayoutMapbox, MCenter, GeoProjection, PRotation, 
                         PlotLayoutGeo, PlotLayout, PlotAnnotation, ErrorBar, Font, 
@@ -425,8 +423,8 @@ Base.@kwdef mutable struct PlotData
   yperiodalignment::Union{String,Nothing} = nothing
   yperiod0::Union{Float64,Int,String,Nothing} = nothing
   ytype::Union{String,Nothing} = nothing
-  # z::Union{Vector,Matrix,Nothing} = nothing
   z::Union{Vector,Nothing} = nothing
+  # z::Union{Matrix,Nothing} = nothing
   zauto::Union{Bool,Nothing} = nothing
   zcalendar::Union{String,Nothing} = nothing
   zhoverformat::Union{String,Nothing} = nothing
