@@ -92,22 +92,14 @@ end
 
 #===#
 """
-    PlotDataMarker()
+    ColorBar()
 
 ----------
 # Examples
 ----------
 
 ```
-julia> marker = PlotDataMarker(
-  size = [20, 30, 15, 10],
-  color = [10.0, 20.0, 40.0, 50.0],
-  cmin = 0.0,
-  cmax = 50.0,
-  colorscale = "Greens",
-  colorbar = ColorBar(title_text = "Some rate", ticksuffix = "%", showticksuffix = "last"),
-  line = PlotlyLine(color = "black")
-)
+julia> 
 ```
 
 -----------
