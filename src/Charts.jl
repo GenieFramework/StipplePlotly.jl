@@ -196,7 +196,7 @@ Base.@kwdef mutable struct PlotDataMarker
   sizemin::Union{Float64,Nothing} = nothing
   sizemode::Union{String,Nothing} = nothing
   sizeref::Union{Float64,Nothing} = nothing
-  symbol::Union{String, Vector{String},Nothing} = nothing
+  symbol::Union{String,Vector{String},Nothing} = nothing
 end
 
 function Base.show(io::IO, pdm::PlotDataMarker)
@@ -216,9 +216,10 @@ function Base.Dict(pdm::PlotDataMarker)
   (pdm.line !== nothing) && (trace[:line] = Dict(pdm.line))
   (pdm.colorbar !== nothing) && (trace[:colorbar] = Dict(pdm.colorbar))
 
-  optionals!(trace, pdm, [:symbol, :opacity, :size, :maxdisplayed, :sizeref, :sizemin,
-      :sizemode, :color, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale,
-      :reversescale, :showscale, :coloraxis, :colors])
+  optionals!(trace, pdm, [
+    :autocolorscale, :cauto, :cmax, :cmid, :cmin, :color, :colors, :coloraxis,
+    :colorbar, :colorscale, :line, :maxdisplayed, :opacity, :reversescale, 
+    :showscale, :size, :sizemin, :sizemode, :sizeref, :symbol])
 end
 
 function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing} = nothing)
