@@ -424,8 +424,8 @@ Base.@kwdef mutable struct PlotData
   yperiodalignment::Union{String,Nothing} = nothing
   yperiod0::Union{Float64,Int,String,Nothing} = nothing
   ytype::Union{String,Nothing} = nothing
+  # z::Union{Vector,Matrix,Nothing} = nothing
   z::Union{Vector,Nothing} = nothing
-  # z::Union{Matrix,Nothing} = nothing
   zauto::Union{Bool,Nothing} = nothing
   zcalendar::Union{String,Nothing} = nothing
   zhoverformat::Union{String,Nothing} = nothing
@@ -453,7 +453,6 @@ Base.@kwdef mutable struct PlotConfig
   toimage_height::Union{Int,Nothing} = nothing # 500
   toimage_width::Union{Int,Nothing} = nothing # 700
   toimage_scale::Union{Int,Float64,Nothing} = nothing # 1
-  # mapbox_access_token::Union{String,Nothing} = nothing
 end
 
 function Base.show(io::IO, pc::PlotConfig)
@@ -477,7 +476,6 @@ function Base.Dict(pc::PlotConfig)
     d[:height] = (pc.toimage_height === nothing) ? 500 : pc.toimage_height
     d[:width] = (pc.toimage_width === nothing) ? 700 : pc.toimage_width
     d[:scale] = (pc.toimage_scale === nothing) ? 1 : pc.toimage_scale
-    # d[:mapboxAccessToken] = (pc.mapbox_access_token === nothing) ? "" : pc.mapbox_access_token
     trace[:toImageButtonOptions] = d
   end
 
@@ -609,13 +607,13 @@ function Base.Dict(pd::PlotData)
                         :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
                         :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
                         :facecolor, :fill, :fillcolor, :flatshading,
-                        :gauge, :geojson, :groupnorm,
+                        :gauge, :groupnorm,
                         :header, :hidesurface, :high, :histfunc, :histnorm,
                         :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
                         :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
                         :j, :jitter, :k,
-                        :labels, :label0, :lat, :legendgroup, :lighting, :lightposition, :locations, :locationmode, :lon, :low, :lowerfence,
-                        :marker, :maxdisplayed, :meanline, :measure, :median, :meta,
+                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
+                        :maxdisplayed, :meanline, :measure, :median, :meta,
                         :mode,
                         :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
                         :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
@@ -633,7 +631,7 @@ function Base.Dict(pd::PlotData)
                         :whiskerwidth, :width,
                         :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
                         :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
-                        :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth])
+                        :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth, :geojson, :lat, :locations, :lon, :locationmode])
 end
 
 function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
