@@ -1195,4 +1195,62 @@ function Base.show(io::IO, l::PlotLayout)
   print(io, output)
 end
 
+function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  layout = Dict{Symbol, Any}()
+
+  if pl.font !== nothing
+    layout[:font] = Dict{Symbol, Any}(
+      :family => pl.font.family,
+      :size => pl.font.size,
+      :color => pl.font.color
+    )
+  end
+
+  d1 = Dict{Symbol, Any}()
+  (pl.margin_l !== nothing) && (d1[:l] = pl.margin_l)
+  (pl.margin_r !== nothing) && (d1[:r] = pl.margin_r)
+  (pl.margin_t !== nothing) && (d1[:t] = pl.margin_t)
+  (pl.margin_b !== nothing) && (d1[:b] = pl.margin_b)
+  (pl.margin_pad !== nothing) && (d1[:pad] = pl.margin_pad)
+  (pl.margin_autoexpand !== nothing) && (d1[:autoexpand] = pl.margin_autoexpand)
+  (length(d1) > 0) && (layout[:margin] = d1)
+
+  d2 = Dict{Symbol, Any}()
+  (pl.uniformtext_mode !== nothing) && (d2[:mode] = pl.uniformtext_mode)
+  (pl.uniformtext_minsize !== nothing) && (d2[:minsize] = pl.uniformtext_minsize)
+  (length(d2) > 0) && (layout[:uniformtext] = d2)
+
+  (pl.title !== nothing) && (layout[:title] = Dict(pl.title))
+  (pl.legend !== nothing) && (layout[:legend] = Dict(pl.legend))
+  (pl.annotations !== nothing) && (layout[:annotations] = Dict.(pl.annotations))
+  (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
+
+  optionals!(layout, pl, [ :showlegend, :autosize, :separators, :paper_bgcolor, :plot_bgcolor,
+    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap, :geo, :mapbox
+  ])
+
+
+  if pl.xaxis !== nothing
+    for d in Dict.(pl.xaxis)
+      merge!(layout, d)
+    end
+  end
+
+  if pl.yaxis !== nothing
+    for d in Dict.(pl.yaxis)
+      merge!(layout, d)
+    end
+  end
+
+  layout
+end
+
+function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict(pl)
+end
+
+function Stipple.render(pl::Vector{PlotLayout}, fieldname::Union{Symbol,Nothing} = nothing)
+  Dict.(pl)
+end
+
 end

@@ -437,6 +437,102 @@ end
 
 const Trace = PlotData
 
+function Base.show(io::IO, pd::PlotData)
+  output = "$(pd.plot): \n"
+  for f in fieldnames(typeof(pd))
+    prop = getproperty(pd, f)
+    if prop !== nothing
+      output *= "$f = $prop \n"
+    end
+  end
+
+  print(io, output)
+end
+
+function Base.Dict(pd::PlotData)
+  trace = Dict{Symbol,Any}(
+    :type => pd.plot
+  )
+
+  if pd.textfont !== nothing
+    trace[:textfont] = Dict(
+      :family => pd.textfont.family,
+      :size => pd.textfont.size,
+      :color => pd.textfont.color
+    )
+  end
+
+  if pd.insidetextfont !== nothing
+    trace[:insidetextfont] = Dict(
+      :family => pd.insidetextfont.family,
+      :size => pd.insidetextfont.size,
+      :color => pd.insidetextfont.color
+    )
+  end
+
+  if pd.outsidetextfont !== nothing
+    trace[:outsidetextfont] = Dict(
+      :family => pd.outsidetextfont.family,
+      :size => pd.outsidetextfont.size,
+      :color => pd.outsidetextfont.color
+    )
+  end
+
+  (pd.line !== nothing) && (trace[:line] = Dict(pd.line))
+  (pd.marker !== nothing) && (trace[:marker] = Dict(pd.marker))
+  (pd.error_x !== nothing) && (trace[:error_x] = Dict(pd.error_x))
+  (pd.error_y !== nothing) && (trace[:error_y] = Dict(pd.error_y))
+  (pd.error_z !== nothing) && (trace[:error_z] = Dict(pd.error_z))
+  (pd.colorbar !== nothing) && (trace[:colorbar] = Dict(pd.colorbar))
+
+  optionals!(trace, pd, [:align, :alignmentgroup, :alphahull, :anchor, :aspectratio, :autobinx, :autobiny,
+                        :autocolorscale, :autocontour, :automargin,
+                        :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
+                        :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
+                        :coloraxis, :colorscale, :columnorder, :columnwidth,
+                        :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
+                        :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
+                        :facecolor, :fill, :fillcolor, :flatshading,
+                        :gauge, :groupnorm,
+                        :header, :hidesurface, :high, :histfunc, :histnorm,
+                        :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
+                        :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
+                        :j, :jitter, :k,
+                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
+                        :maxdisplayed, :meanline, :measure, :median, :meta,
+                        :mode,
+                        :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
+                        :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
+                        :points, :pointpos, :projection, :pull,
+                        :q1, :q3, :quartilemethod,
+                        :reversescale, :rotation,
+                        :scalegroup, :scalemode, :scene, :sd,
+                        :selected, :selectedpoints, :showlegend,
+                        :showscale, :side, :sizemode, :sizeref, :slices, :sort, :source, :spaceframe, :span, :spanmode,
+                        :stackgaps, :stackgroup, :starts, :surface, :surfaceaxis, :surfacecolor,
+                        :text, :textangle, :textinfo,
+                        :textposition, :texttemplate, :tickwidth, :totals, :transpose,
+                        :uirevision, :upperfence, :unselected,
+                        :values, :vertexcolor, :visible,
+                        :whiskerwidth, :width,
+                        :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
+                        :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
+                        :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth,
+                        :geojson, :lat, :locations, :lon, :locationmode])
+end
+
+function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(pd)]
+end
+
+function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} = nothing)
+  [Dict(pd) for pd in pdv]
+end
+
+function Stipple.render(pdvv::Vector{Vector{PlotData}}, fieldname::Union{Symbol,Nothing} = nothing)
+  [[Dict(pd) for pd in pdv] for pdv in pdvv]
+end
+
 # =============
 
 # Reference: https://github.com/plotly/plotly.js/blob/master/src/plot_api/plot_config.js?package=plotly&version=3.6.0
@@ -544,166 +640,6 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   pp = collect(k.=> v)
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
   plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp...])...)
-end
-
-# =============
-
-function Base.show(io::IO, pd::PlotData)
-  output = "$(pd.plot): \n"
-  for f in fieldnames(typeof(pd))
-    prop = getproperty(pd, f)
-    if prop !== nothing
-      output *= "$f = $prop \n"
-    end
-  end
-
-  print(io, output)
-end
-
-
-#===#
-
-function Base.Dict(pd::PlotData)
-  trace = Dict{Symbol,Any}(
-    :type => pd.plot
-  )
-
-  if pd.textfont !== nothing
-    trace[:textfont] = Dict(
-      :family => pd.textfont.family,
-      :size => pd.textfont.size,
-      :color => pd.textfont.color
-    )
-  end
-
-  if pd.insidetextfont !== nothing
-    trace[:insidetextfont] = Dict(
-      :family => pd.insidetextfont.family,
-      :size => pd.insidetextfont.size,
-      :color => pd.insidetextfont.color
-    )
-  end
-
-  if pd.outsidetextfont !== nothing
-    trace[:outsidetextfont] = Dict(
-      :family => pd.outsidetextfont.family,
-      :size => pd.outsidetextfont.size,
-      :color => pd.outsidetextfont.color
-    )
-  end
-
-  (pd.line !== nothing) && (trace[:line] = Dict(pd.line))
-  (pd.marker !== nothing) && (trace[:marker] = Dict(pd.marker))
-  (pd.error_x !== nothing) && (trace[:error_x] = Dict(pd.error_x))
-  (pd.error_y !== nothing) && (trace[:error_y] = Dict(pd.error_y))
-  (pd.error_z !== nothing) && (trace[:error_z] = Dict(pd.error_z))
-  (pd.colorbar !== nothing) && (trace[:colorbar] = Dict(pd.colorbar))
-
-  optionals!(trace, pd, [:align, :alignmentgroup, :alphahull, :anchor, :aspectratio, :autobinx, :autobiny,
-                        :autocolorscale, :autocontour, :automargin,
-                        :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
-                        :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
-                        :coloraxis, :colorscale, :columnorder, :columnwidth,
-                        :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
-                        :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
-                        :facecolor, :fill, :fillcolor, :flatshading,
-                        :gauge, :groupnorm,
-                        :header, :hidesurface, :high, :histfunc, :histnorm,
-                        :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
-                        :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
-                        :j, :jitter, :k,
-                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
-                        :maxdisplayed, :meanline, :measure, :median, :meta,
-                        :mode,
-                        :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
-                        :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
-                        :points, :pointpos, :projection, :pull,
-                        :q1, :q3, :quartilemethod,
-                        :reversescale, :rotation,
-                        :scalegroup, :scalemode, :scene, :sd,
-                        :selected, :selectedpoints, :showlegend,
-                        :showscale, :side, :sizemode, :sizeref, :slices, :sort, :source, :spaceframe, :span, :spanmode,
-                        :stackgaps, :stackgroup, :starts, :surface, :surfaceaxis, :surfacecolor,
-                        :text, :textangle, :textinfo,
-                        :textposition, :texttemplate, :tickwidth, :totals, :transpose,
-                        :uirevision, :upperfence, :unselected,
-                        :values, :vertexcolor, :visible,
-                        :whiskerwidth, :width,
-                        :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
-                        :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
-                        :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth, :geojson, :lat, :locations, :lon, :locationmode])
-end
-
-function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
-  [Dict(pd)]
-end
-
-function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} = nothing)
-  [Dict(pd) for pd in pdv]
-end
-
-function Stipple.render(pdvv::Vector{Vector{PlotData}}, fieldname::Union{Symbol,Nothing} = nothing)
-  [[Dict(pd) for pd in pdv] for pdv in pdvv]
-end
-
-#===#
-
-function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
-  layout = Dict{Symbol, Any}()
-
-  if pl.font !== nothing
-    layout[:font] = Dict{Symbol, Any}(
-      :family => pl.font.family,
-      :size => pl.font.size,
-      :color => pl.font.color
-    )
-  end
-
-  d1 = Dict{Symbol, Any}()
-  (pl.margin_l !== nothing) && (d1[:l] = pl.margin_l)
-  (pl.margin_r !== nothing) && (d1[:r] = pl.margin_r)
-  (pl.margin_t !== nothing) && (d1[:t] = pl.margin_t)
-  (pl.margin_b !== nothing) && (d1[:b] = pl.margin_b)
-  (pl.margin_pad !== nothing) && (d1[:pad] = pl.margin_pad)
-  (pl.margin_autoexpand !== nothing) && (d1[:autoexpand] = pl.margin_autoexpand)
-  (length(d1) > 0) && (layout[:margin] = d1)
-
-  d2 = Dict{Symbol, Any}()
-  (pl.uniformtext_mode !== nothing) && (d2[:mode] = pl.uniformtext_mode)
-  (pl.uniformtext_minsize !== nothing) && (d2[:minsize] = pl.uniformtext_minsize)
-  (length(d2) > 0) && (layout[:uniformtext] = d2)
-
-  (pl.title !== nothing) && (layout[:title] = Dict(pl.title))
-  (pl.legend !== nothing) && (layout[:legend] = Dict(pl.legend))
-  (pl.annotations !== nothing) && (layout[:annotations] = Dict.(pl.annotations))
-  (pl.grid !== nothing) && (layout[:grid] = Dict(pl.grid))
-
-  optionals!(layout, pl, [ :showlegend, :autosize, :separators, :paper_bgcolor, :plot_bgcolor,
-    :width, :height, :barmode, :barnorm, :bargap, :bargroupgap, :geo, :mapbox
-  ])
-
-
-  if pl.xaxis !== nothing
-    for d in Dict.(pl.xaxis)
-      merge!(layout, d)
-    end
-  end
-
-  if pl.yaxis !== nothing
-    for d in Dict.(pl.yaxis)
-      merge!(layout, d)
-    end
-  end
-
-  layout
-end
-
-function Stipple.render(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
-  Dict(pl)
-end
-
-function Stipple.render(pl::Vector{PlotLayout}, fieldname::Union{Symbol,Nothing} = nothing)
-  Dict.(pl)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
