@@ -4,7 +4,7 @@ using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 
-export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar
+export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 
@@ -73,8 +73,28 @@ function __init__()
     StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
     StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
     JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
+    
+    function Base.Dict(p::PlotlyBase.Plot)
+      Dict(
+        :data => p.data,
+        :layout => p.layout,
+        :frames => p.frames,
+        :config => p.config
+        )
+      end
+    end
+    
+    # function PlotlyBase.Plot(d::AbstractDict)
+    #   sd = PlotlyBase._symbol_dict(d)
+    #   data = haskey(sd, :data) ? GenericTrace.(sd[:data]) : GenericTrace[]
+    #   layout = haskey(sd, :layout) ? PlotlyBase.Layout(d[:layout]) : PlotlyBase.Layout()
+    #   frames = haskey(sd, :frames) ? PlotlyFrame.(d[:frames]) : PlotlyFrame[]
+    #   config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
 
-  end  
+    #   PlotlyBase.Plot(data, layout, frames; config)
+    # end
+
+    # Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict) = PlotlyBase.Plot(d)
 end
 
 """
@@ -95,6 +115,46 @@ julia> plotly(:plot, config = :config)
 """
 function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
   plot("$p.data", args...; layout, config, configtype, kwargs...)
+end
+
+"""
+    function watchplot(id, model, prefix = id)
+
+This function generates a js script binds plot events, e.g. point selection or hovering, to model fields.
+
+# Example
+```julia
+@reactive! mutable struct Example <: ReactiveModel
+    plot::R{Plot} = Plot()
+    plot_selected::R{Dict{String, Any}} = Dict{String, Any}()
+    plot_hover::R{Dict{String, Any}} = Dict{String, Any}()
+end
+
+function ui(model::Example)
+    page(model, class = "container", 
+    row(class = "st-module", [
+        plotly(:plot, id = "plot1"),
+    ]))
+end
+
+Stipple.js_mounted(::Example) = watchplot(:plot1, :plot)
+
+function handlers(model)
+  on(model.isready) do isready
+      isready || return
+      push!(model)
+  end
+
+  on(model.plot_selected) do data
+      haskey(data, "points") && @info "Selection: \$(getindex.(data["points"], "pointIndex"))"
+  end
+
+  return model
+end
+```
+"""
+function watchplot(id, prefix = id)
+  "window.watchPlot('$id', this, '$prefix')\n"
 end
 
 function optionals!(d::Dict, ptype::Any, opts::Vector{Symbol}) :: Dict
