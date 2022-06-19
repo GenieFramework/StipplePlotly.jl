@@ -4,7 +4,7 @@ Embedding Plotly Charts in Stipple.
 
 Both a StipplePlotly-API and the PlotlyBase API are supported.
 
-#### Latest example with forwarding plot events
+#### Latest example with forwarding of plotly events
 
 ```julia
 @reactive! mutable struct Example <: ReactiveModel
@@ -37,5 +37,5 @@ end
 ```
 For more Stipple Plotly Demos please check: [Stipple Demos Repo](https://github.com/GenieFramework/StippleDemos)
 
-##Acknowledgement
+## Acknowledgement
 Handling of Plotly Events was highly inspired by the [PlotlyJS](https://github.com/JuliaPlots/PlotlyJS.jl) package by [Spencer Lyon](https://github.com/sglyon)
