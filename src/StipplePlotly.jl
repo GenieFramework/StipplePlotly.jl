@@ -66,6 +66,9 @@ end
 include("Charts.jl")
 @reexport using .Charts
 
+include("Layouts.jl")
+@reexport using .Layouts
+
 function __init__()
   deps_routes()
   Stipple.deps!(@__MODULE__, deps)
