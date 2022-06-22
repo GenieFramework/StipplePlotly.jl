@@ -18,6 +18,7 @@ using Requires
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
+export PlotlyEvents, PlotlyWithEvents
 
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
@@ -72,8 +73,15 @@ function __init__()
         :layout => p.layout,
         :frames => p.frames,
         :config => p.config
-        )
-      end
+      )
+    end
+    
+    Base.@kwdef struct PBPlotWithEvents
+      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot()
+      _selected::R{PlotlyEvent} = PlotlyEvent()
+      _hover::R{PlotlyEvent} = PlotlyEvent()
+      _click::R{PlotlyEvent} = PlotlyEvent()
+      _relayout::R{PlotlyEvent} = PlotlyEvent()
     end
     
     # function PlotlyBase.Plot(d::AbstractDict)
@@ -705,6 +713,26 @@ function plot(data::Union{Symbol,AbstractString}, args...;
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
+
+# =============
+
+const PlotlyEvent = Dict{String, Any}
+
+Base.@kwdef struct PlotlyEvents
+  _selected::R{PlotlyEvent} = PlotlyEvent()
+  _hover::R{PlotlyEvent} = PlotlyEvent()
+  _click::R{PlotlyEvent} = PlotlyEvent()
+  _relayout::R{PlotlyEvent} = PlotlyEvent()
+end
+
+Base.@kwdef struct PlotWithEvents
+  _data::R{Vector{PlotData}} = PlotData[]
+  _layout::R{Vector{PlotData}} = PlotData[]
+  _selected::R{PlotlyEvent} = PlotlyEvent()
+  _hover::R{PlotlyEvent} = PlotlyEvent()
+  _click::R{PlotlyEvent} = PlotlyEvent()
+  _relayout::R{PlotlyEvent} = PlotlyEvent()
+end
 
 # #===#
 
