@@ -18,7 +18,7 @@ using Requires
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
-export PlotlyEvents, PlotlyWithEvents
+export PlotlyEvents, PlotWithEvents, PBPlotWithEvents
 
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
@@ -84,17 +84,18 @@ function __init__()
       _relayout::R{PlotlyEvent} = PlotlyEvent()
     end
     
-    # function PlotlyBase.Plot(d::AbstractDict)
-    #   sd = PlotlyBase._symbol_dict(d)
-    #   data = haskey(sd, :data) ? GenericTrace.(sd[:data]) : GenericTrace[]
-    #   layout = haskey(sd, :layout) ? PlotlyBase.Layout(d[:layout]) : PlotlyBase.Layout()
-    #   frames = haskey(sd, :frames) ? PlotlyFrame.(d[:frames]) : PlotlyFrame[]
-    #   config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
+    function PlotlyBase.Plot(d::AbstractDict)
+      sd = PlotlyBase._symbol_dict(d)
+      data = haskey(sd, :data) ? GenericTrace.(sd[:data]) : GenericTrace[]
+      layout = haskey(sd, :layout) ? PlotlyBase.Layout(d[:layout]) : PlotlyBase.Layout()
+      frames = haskey(sd, :frames) ? PlotlyFrame.(d[:frames]) : PlotlyFrame[]
+      config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
 
-    #   PlotlyBase.Plot(data, layout, frames; config)
-    # end
+      PlotlyBase.Plot(data, layout, frames; config)
+    end
 
-    # Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict) = PlotlyBase.Plot(d)
+    Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict) = PlotlyBase.Plot(d)
+  end
 end
 
 """
