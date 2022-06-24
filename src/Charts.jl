@@ -86,11 +86,11 @@ function __init__()
     
     function PlotlyBase.Plot(d::AbstractDict)
       sd = PlotlyBase._symbol_dict(d)
-      data = haskey(sd, :data) ? GenericTrace.(sd[:data]) : GenericTrace[]
-      layout = haskey(sd, :layout) ? PlotlyBase.Layout(d[:layout]) : PlotlyBase.Layout()
-      frames = haskey(sd, :frames) ? PlotlyFrame.(d[:frames]) : PlotlyFrame[]
+      data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
+      layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
+      frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
       config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
-
+  
       PlotlyBase.Plot(data, layout, frames; config)
     end
 
