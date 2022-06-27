@@ -15,7 +15,7 @@ using .Layouts:optionals!
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 
-export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot
+export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot, watchplots
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 export PlotlyEvents, PlotWithEvents, PBPlotWithEvents
@@ -119,9 +119,34 @@ function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symb
 end
 
 """
-    function watchplot(id, model, prefix = id)
+    function watchplot(selector::AbstractString)
 
-This function generates a js script binds plot events, e.g. point selection or hovering, to model fields.
+Generates a js script that forwards plotly events of a DOM element to its respective model fields,
+e.g. plot_selected, plot_hover, etc...
+Only usable for plots that are always present in the UI. For dynamically appearing plots use `watchplots(parentselector)`.
+In most cases it is easier to use `watchplots(MyReactiveModel, observe = false)` for fixed plots as this will cover all plots on the page.
+`watchplot()` is meant for the rare case of plot-specific event-binding.
+"""
+function watchplot(selector::AbstractString, prefix = id)
+  "window.watchGraphDiv(document.querySelector('$selector'), this)\n"
+end
+
+"""
+    function watchplot(id::Symbol)
+
+Call watchplot with an 'id' instead of a CSS selector string.
+"""
+function watchplot(id::Symbol)
+  "window.watchPlot(document.getElementById('$id'), this)\n"
+end
+
+"""
+    function watchplots(parentselector::AbstractString; subtree = false, observe = true)
+
+Generates a js script that forwards plotly events, e.g. point selection or hovering, to their respective model fields.
+- `parentselector` is a CSS selector for a DOM element, e.g. `"#id"`, `".class1"`, `"TableDemo div"`
+- `observe` determines whether later additions of plots should be handled
+- `subtree` determines whether also subchildren are scanned for new plots
 
 # Example
 ```julia
@@ -129,16 +154,21 @@ This function generates a js script binds plot events, e.g. point selection or h
     plot::R{Plot} = Plot()
     plot_selected::R{Dict{String, Any}} = Dict{String, Any}()
     plot_hover::R{Dict{String, Any}} = Dict{String, Any}()
+    plot1_selected::R{Dict{String, Any}} = Dict{String, Any}()
 end
 
 function ui(model::Example)
     page(model, class = "container", 
-    row(class = "st-module", [
-        plotly(:plot, id = "plot1"),
+    row(class = "st-module", id = "plotcontainer", [
+      # syncs plotly events to field plot_selected, plot_hover, etc...
+      plotly(:plot, syncevents = true),
+
+      # syncs plotly events to field plot1_selected, plot1_hover, etc...
+      plotly(:plot, syncprefix = "plot1", @iif(length(model.plot.data) > 0),
     ]))
 end
 
-Stipple.js_mounted(::Example) = watchplot(:plot1, :plot)
+Stipple.js_mounted(::Example) = watchplots(:plotcontainer)
 
 function handlers(model)
   on(model.isready) do isready
@@ -154,9 +184,12 @@ function handlers(model)
 end
 ```
 """
-function watchplot(id, prefix = id)
-  "window.watchPlot('$id', this, '$prefix')\n"
+function watchplots(parentselector::AbstractString; observe = true, subtree = false)
+  "window.watchPlots('$parentselector', this, $observe, $subtree)\n"
 end
+
+watchplots(id::Symbol; observe = true, subtree = false) = watchplots("#$id"; observe, subtree)
+watchplots(model; observe = true, subtree = true) = watchplots("#$(vm(model))"; observe, subtree)
 
 Base.@kwdef mutable struct PlotlyLine
   # for all Plotly lines:
@@ -686,7 +719,7 @@ end
 function plot(data::Union{Symbol,AbstractString}, args...;
   layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
-  kwargs...) :: String  where {LayoutType, ConfigType}
+  syncevents::Bool = false, syncprefix = "", class = "", kwargs...) :: String  where {LayoutType, ConfigType}
 
   plotconfig = render(isnothing(config) ? configtype() : config)
   plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
@@ -710,7 +743,18 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   end
   pp = collect(k.=> v)
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
-  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp...])...)
+  if syncevents || ! isempty(syncprefix)
+    if isempty(syncprefix)
+      datastr = String(data)
+      syncprefix = endswith(datastr, "data") && length(datastr) > 4 ? datastr[1:end-4] : datastr
+      syncprefix = split(syncprefix, ['_', '.'])[1]
+    end
+    class = isempty(class) ? "sync_$syncprefix" : "sync_$syncprefix $class"
+  end
+  sync = Pair{Symbol, String}[]
+  isempty(class) || push!(sync, :class => class)
+  
+  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp..., sync...])...)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))

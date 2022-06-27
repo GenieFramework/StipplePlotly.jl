@@ -1,33 +1,55 @@
-function watchPlot(id, model, prefix) {
-        gd = document.getElementById(id)
+function watchPlots(parentSelector, model, observe = true, subtree = false) {
+    var parent = document.querySelector(parentSelector)
+    var plotNodes = parent.querySelectorAll('.js-plotly-plot')
+    plotNodes.forEach(function(gd) { watchPlot(gd, model) })
 
-        gd.on("plotly_selected", function (data) {
-            var filteredEventData = filterEventData(gd, data, 'selected')
-            if (!filteredEventData.isNil) { model[prefix + '_selected'] = filteredEventData.out }
-        })
+    if (observe) {
+        const observer = new MutationObserver(function(mutations_list) {
+            mutations_list.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(gd) {
+                    if ((typeof gd.classList != 'undefined') && gd.classList.contains('js-plotly-plot')){
+                        watchPlot(gd, model)
+                    }
+                });
+            });
+        });
+        observer.observe(parent, {childList: true, subtree: subtree})
+    }
+}
 
-        gd.on("plotly_deselect", function () {
-            model[prefix + '_selected'] = {}
-        })
+function watchPlot(gd, model) {
+    syncList = [...gd.classList].filter(x => x.startsWith('sync_'))
+    syncList.forEach(function(c) { watchGraphDiv(gd, model, c.split('_')[1]) })
+}
 
-        gd.on("plotly_hover", function (data) {
-            var filteredEventData = filterEventData(gd, data, 'hover')
-            if (!filteredEventData.isNil) { model[prefix + '_hover'] = filteredEventData.out }
-        })
+function watchGraphDiv(gd, model, prefix) {
+    gd.on("plotly_selected", function (data) {
+        var filteredEventData = filterEventData(gd, data, 'selected')
+        if (!filteredEventData.isNil) { model[prefix + '_selected'] = filteredEventData.out }
+    })
 
-        gd.on("plotly_unhover", function () {
-            model[prefix + '_hover'] = {}
-        })
+    gd.on("plotly_deselect", function () {
+        model[prefix + '_selected'] = {}
+    })
 
-        gd.on("plotly_click", function (data) {
-            var filteredEventData = filterEventData(gd, data, 'click')
-            if (!filteredEventData.isNil) { model[prefix + '_click'] = filteredEventData.out }
-        })
+    gd.on("plotly_hover", function (data) {
+        var filteredEventData = filterEventData(gd, data, 'hover')
+        if (!filteredEventData.isNil) { model[prefix + '_hover'] = filteredEventData.out }
+    })
 
-        gd.on("plotly_relayout", function (data) {
-            var filteredEventData = filterEventData(gd, data, 'relayout')
-            if (!filteredEventData.isNil) { model[prefix + '_relayout'] = filteredEventData.out }
-        })
+    gd.on("plotly_unhover", function () {
+        model[prefix + '_hover'] = {}
+    })
+
+    gd.on("plotly_click", function (data) {
+        var filteredEventData = filterEventData(gd, data, 'click')
+        if (!filteredEventData.isNil) { model[prefix + '_click'] = filteredEventData.out }
+    })
+
+    gd.on("plotly_relayout", function (data) {
+        var filteredEventData = filterEventData(gd, data, 'relayout')
+        if (!filteredEventData.isNil) { model[prefix + '_relayout'] = filteredEventData.out }
+    })
 }
 
 function type(obj) {

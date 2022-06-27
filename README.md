@@ -5,6 +5,7 @@ Embedding Plotly Charts in Stipple.
 Both a StipplePlotly-API and the PlotlyBase API are supported.
 
 #### Latest example with forwarding of plotly events
+##### Note: Syntax for `plot()` and `watchplot()` has changed, see the docstrings for more details!
 
 ```julia
 @reactive! mutable struct Example <: ReactiveModel
@@ -16,11 +17,12 @@ end
 function ui(model::Example)
     page(model, class = "container", 
     row(class = "st-module", [
-        plotly(:plot, id = "plot1"),
+        plotly(:plot, syncevents = true),
     ]))
 end
 
-Stipple.js_mounted(::Example) = watchplot(:plot1, :plot)
+# The following line will watch all plots that have `syncevents` enabled or that have set `syncprefix` explicitly.
+Stipple.js_mounted(::Example) = watchplots(:Example)
 
 function handlers(model)
   on(model.isready) do isready
