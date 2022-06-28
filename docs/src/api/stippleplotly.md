@@ -2,9 +2,6 @@
 CurrentModule = StipplePlotly
 ```
 
-```@contents
-```
-
 ```@docs
 deps
 ```
