@@ -2,9 +2,6 @@
 CurrentModule = Charts
 ```
 
-```@contents
-```
-
 ```@docs
 plot
 PlotConfig

@@ -2,9 +2,6 @@
 CurrentModule = Layouts
 ```
 
-```@contents
-```
-
 ```@docs
 ColorBar
 Font
