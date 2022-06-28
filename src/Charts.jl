@@ -557,6 +557,12 @@ Base.@kwdef mutable struct PlotData
   zsmooth::Union{String,Nothing} = nothing
 end
 
+const CONFIG_MAPPINGS = Dict(
+  :scrollzoom => :scrollZoom,
+  :staticplot => :staticPlot,
+  :displaymodebar => :displayModeBar
+)
+
 const Trace = PlotData
 
 function Base.show(io::IO, pd::PlotData)
@@ -698,6 +704,8 @@ function Base.Dict(pc::PlotConfig)
   end
 
   optionals!(trace, pc, [:responsive, :editable, :scrollzoom, :staticplot, :displaymodebar, :displaylogo])
+
+  Dict{Symbol, Any}(replace(collect(keys(trace)), CONFIG_MAPPINGS...) .=> values(trace))
 end
 
 function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing} = nothing)
@@ -749,7 +757,17 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   else
     Symbol(jsonrender(layout))
   end
-  k = plotconfig isa AbstractDict ? keys(plotconfig) : collect(fieldnames(configtype))
+  k = if plotconfig isa AbstractDict
+    keys(plotconfig)
+  else
+    kk = collect(fieldnames(configtype))
+    if configtype == StipplePlotly.PlotConfig
+      # remove fields with underscore and add respective rendering field (StipplePlotly)
+      kk = kk[.! occursin.("_", string.(kk))]
+      push!(kk, :toImageButtonOptions)
+    end
+    kk
+  end
   v = if plotconfig isa Union{AbstractString, Symbol}
     v = Symbol.(plotconfig, ".", string.(k), " || ''")
   else
@@ -759,7 +777,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     isnothing(n) || v[n] != false || (v[n] = js"false")
     v = Symbol.(jsonrender.(v))
   end
-  pp = collect(k.=> v)
+  pp = replace(k, CONFIG_MAPPINGS...) .=> v
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
   if syncevents || ! isempty(syncprefix)
     if isempty(syncprefix)
