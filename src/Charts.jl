@@ -18,7 +18,7 @@ using Requires
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot, watchplots
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
-export PlotlyEvents, PlotWithEvents, PBPlotWithEvents
+export PlotlyEvents, PlotWithEvents, PBPlotWithEvents, PlotWithEventsReadOnly, PBPlotWithEventsReadOnly
 
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
@@ -84,6 +84,14 @@ function __init__()
       _relayout::R{PlotlyEvent} = PlotlyEvent()
     end
     
+    Base.@kwdef struct PBPlotWithEventsReadOnly
+      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot(), READONLY
+      _selected::R{PlotlyEvent} = PlotlyEvent()
+      _hover::R{PlotlyEvent} = PlotlyEvent()
+      _click::R{PlotlyEvent} = PlotlyEvent()
+      _relayout::R{PlotlyEvent} = PlotlyEvent()
+    end
+
     function PlotlyBase.Plot(d::AbstractDict)
       sd = PlotlyBase._symbol_dict(d)
       data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
@@ -124,8 +132,9 @@ end
 Generates a js script that forwards plotly events of a DOM element to its respective model fields,
 e.g. plot_selected, plot_hover, etc...
 Only usable for plots that are always present in the UI. For dynamically appearing plots use `watchplots(parentselector)`.
-In most cases it is easier to use `watchplots(MyReactiveModel, observe = false)` for fixed plots as this will cover all plots on the page.
-`watchplot()` is meant for the rare case of plot-specific event-binding.
+For most cases it is recommended to use `watchplots(MyReactiveModel, observe = false)` for fixed plots
+as this will cover all plots on the page.
+`watchplot()` is meant for the rare case of plot-specific event-binding, e.g. in a backend listener.
 """
 function watchplot(selector::AbstractString, prefix = id)
   "window.watchGraphDiv(document.querySelector('$selector'), this)\n"
@@ -148,6 +157,15 @@ Generates a js script that forwards plotly events, e.g. point selection or hover
 - `observe` determines whether later additions of plots should be handled
 - `subtree` determines whether also subchildren are scanned for new plots
 
+Observe all plots in a container div '#plotcontainer', also dynamically added plots
+`Stipple.js_mounted(::Example) = watchplots(:plotcontainer)`
+
+Observe all plots in a container div '#plotcontainer', only once after document loading
+`Stipple.js_mounted(::Example) = watchplots(:plotcontainer, observe = false)`
+
+Observe all plots in the app; needs slightly more CPU time due to filtering of events
+`Stipple.js_mounted(::Example) = watchplots(:Example)`
+
 # Example
 ```julia
 @reactive! mutable struct Example <: ReactiveModel
@@ -159,13 +177,13 @@ end
 
 function ui(model::Example)
     page(model, class = "container", 
-    row(class = "st-module", id = "plotcontainer", [
+    row(cell(class = "st-module", id = "plotcontainer", [
       # syncs plotly events to field plot_selected, plot_hover, etc...
       plotly(:plot, syncevents = true),
 
       # syncs plotly events to field plot1_selected, plot1_hover, etc...
-      plotly(:plot, syncprefix = "plot1", @iif(length(model.plot.data) > 0),
-    ]))
+      plotly(:plot, syncprefix = "plot1", @iif(length(model.plot.data) > 0)),
+    ])))
 end
 
 Stipple.js_mounted(::Example) = watchplots(:plotcontainer)
@@ -773,6 +791,15 @@ end
 Base.@kwdef struct PlotWithEvents
   _data::R{Vector{PlotData}} = PlotData[]
   _layout::R{Vector{PlotData}} = PlotData[]
+  _selected::R{PlotlyEvent} = PlotlyEvent()
+  _hover::R{PlotlyEvent} = PlotlyEvent()
+  _click::R{PlotlyEvent} = PlotlyEvent()
+  _relayout::R{PlotlyEvent} = PlotlyEvent()
+end
+
+Base.@kwdef struct PlotWithEventsReadOnly
+  _data::R{Vector{PlotData}} = PlotData[], READONLY
+  _layout::R{Vector{PlotData}} = PlotData[], READONLY
   _selected::R{PlotlyEvent} = PlotlyEvent()
   _hover::R{PlotlyEvent} = PlotlyEvent()
   _click::R{PlotlyEvent} = PlotlyEvent()

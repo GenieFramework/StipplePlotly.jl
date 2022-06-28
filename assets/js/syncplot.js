@@ -19,7 +19,7 @@ function watchPlots(parentSelector, model, observe = true, subtree = false) {
 
 function watchPlot(gd, model) {
     syncList = [...gd.classList].filter(x => x.startsWith('sync_'))
-    syncList.forEach(function(c) { watchGraphDiv(gd, model, c.split('_')[1]) })
+    syncList.forEach(function(c) { watchGraphDiv(gd, model, c.match(/sync_(.*)/)[1]) })
 }
 
 function watchGraphDiv(gd, model, prefix) {
