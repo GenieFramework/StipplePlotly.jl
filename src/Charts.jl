@@ -130,14 +130,19 @@ end
     function watchplot(selector::AbstractString)
 
 Generates a js script that forwards plotly events of a DOM element to its respective model fields,
-e.g. plot_selected, plot_hover, etc...
-Only usable for plots that are always present in the UI. For dynamically appearing plots use `watchplots(parentselector)`.
-For most cases it is recommended to use `watchplots(MyReactiveModel, observe = false)` for fixed plots
-as this will cover all plots on the page.
-`watchplot()` is meant for the rare case of plot-specific event-binding, e.g. in a backend listener.
+e.g. `plot_selected`, `plot_hover`, etc...
+If no prefix is given, it is taken from the class list which needs to contain at least one entry `'sync_[prefix]'`, e.g `sync_plot`.
+This function acts on plots that are already present in the UI. It is meant for the rare case of 
+plot-specific event-binding, e.g. in a backend listener.
+
+The normal way forwarding plot events is to call `watchplots()` in `js_mounted()`.
 """
-function watchplot(selector::AbstractString, prefix = id)
-  "window.watchGraphDiv(document.querySelector('$selector'), this)\n"
+function watchplot(selector::AbstractString)
+  "window.watchPlot(document.querySelector('$selector'), this, $prefix)\n"
+end
+
+function watchplot(selector::AbstractString, prefix)
+  "window.watchGraphDiv(document.querySelector('$selector'), this, $prefix)\n"
 end
 
 """
@@ -150,21 +155,23 @@ function watchplot(id::Symbol)
 end
 
 """
-    function watchplots(parentselector::AbstractString; subtree = false, observe = true)
+    function watchplots(model = "this"; observe = true, parentSelector::Union{Nothing, AbstractString} = nothing)
 
 Generates a js script that forwards plotly events, e.g. point selection or hovering, to their respective model fields.
-- `parentselector` is a CSS selector for a DOM element, e.g. `"#id"`, `".class1"`, `"TableDemo div"`
-- `observe` determines whether later additions of plots should be handled
-- `subtree` determines whether also subchildren are scanned for new plots
+`model` can be a string, a model or a model type. Dynamically added plots are also covered.
 
-Observe all plots in a container div '#plotcontainer', also dynamically added plots
-`Stipple.js_mounted(::Example) = watchplots(:plotcontainer)`
+The recommended usage is to called it on the mounted event. In that case the model argument can be omitted.
+`Stipple.js_mounted(::Example) = watchplots()`
 
-Observe all plots in a container div '#plotcontainer', only once after document loading
-`Stipple.js_mounted(::Example) = watchplots(:plotcontainer, observe = false)`
+Plots to be covered by this approach must contain at least one class entry `'sync_[prefix]'`, e.g `sync_plot`.
+You can use the keyword arguments `syncevents` or `syncprefix` of `plot()` to generate the UI plot nodes:
+```
+julia> plot("plot.data", syncevents = true)
+"<plotly :data=\"plot.data\" :layout=\"{}\" class=\"sync_plot\"></plotly>"
 
-Observe all plots in the app; needs slightly more CPU time due to filtering of events
-`Stipple.js_mounted(::Example) = watchplots(:Example)`
+julia> plot("plot.data", syncprefix = "plot1")
+"<plotly :data=\"plot.data\" :layout=\"{}\" class=\"sync_plot1\"></plotly>"
+```
 
 # Example
 ```julia
@@ -186,7 +193,7 @@ function ui(model::Example)
     ])))
 end
 
-Stipple.js_mounted(::Example) = watchplots(:plotcontainer)
+Stipple.js_mounted(::Example) = watchplots()
 
 function handlers(model)
   on(model.isready) do isready
@@ -202,12 +209,14 @@ function handlers(model)
 end
 ```
 """
-function watchplots(parentselector::AbstractString; observe = true, subtree = false)
-  "window.watchPlots('$parentselector', this, $observe, $subtree)\n"
+function watchplots(model::Union{Symbol, AbstractString} = "this"; observe = true, parentSelector::Union{Nothing, AbstractString} = nothing)
+  """watchPlots($model, $observe, $(isnothing(parentSelector) ? "''" : parentSelector))"""
 end
 
-watchplots(id::Symbol; observe = true, subtree = false) = watchplots("#$id"; observe, subtree)
-watchplots(model; observe = true, subtree = true) = watchplots("#$(vm(model))"; observe, subtree)
+function watchplots(model::Union{M, Type{M}}; observe = true, 
+                    parentSelector::Union{Nothing, AbstractString} = nothing) where M <: ReactiveModel
+  watchplots(vm(model); observe, parentSelector)
+end
 
 Base.@kwdef mutable struct PlotlyLine
   # for all Plotly lines:
@@ -758,7 +767,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     Symbol(jsonrender(layout))
   end
   k = if plotconfig isa AbstractDict
-    keys(plotconfig)
+    collect(keys(plotconfig))
   else
     kk = collect(fieldnames(configtype))
     if configtype == StipplePlotly.PlotConfig

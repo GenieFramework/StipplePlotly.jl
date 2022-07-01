@@ -41,6 +41,12 @@ function deps_routes() :: Nothing
       :javascript) |> Genie.Renderer.respond
   end
 
+  Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="sentinel.min"), named = :get_sentineljs) do
+    Genie.Renderer.WebRenderable(
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="sentinel.min.js")),
+      :javascript) |> Genie.Renderer.respond
+  end
+
   Genie.Router.route(Genie.Assets.asset_path(assets_config, :js, file="syncplot"), named = :get_syncplotjs) do
     Genie.Renderer.WebRenderable(
       Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="syncplot.js")),
@@ -57,6 +63,7 @@ function deps() :: Vector{String}
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="lodash.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueplotly.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="sentinel.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="syncplot"))
   ]
 end
