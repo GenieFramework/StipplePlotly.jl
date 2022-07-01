@@ -1,19 +1,12 @@
-function watchPlots(parentSelector, model, observe = true, subtree = false) {
-    var parent = document.querySelector(parentSelector)
-    var plotNodes = parent.querySelectorAll('.js-plotly-plot')
-    plotNodes.forEach(function(gd) { watchPlot(gd, model) })
+function watchPlots(model, observe = true, parentSelector = '') {
+    if (parentSelector != '') {
+        let parent = document.querySelector(parentSelector)
+        let plotNodes = parent.querySelectorAll('.js-plotly-plot')
+        plotNodes.forEach(function(gd) { watchPlot(gd, model) })
+    }
 
     if (observe) {
-        const observer = new MutationObserver(function(mutations_list) {
-            mutations_list.forEach(function(mutation) {
-                mutation.addedNodes.forEach(function(gd) {
-                    if ((typeof gd.classList != 'undefined') && gd.classList.contains('js-plotly-plot')){
-                        watchPlot(gd, model)
-                    }
-                });
-            });
-        });
-        observer.observe(parent, {childList: true, subtree: subtree})
+        sentinel.on('.js-plotly-plot', function(gd) { window.watchPlot(gd, model) })
     }
 }
 
@@ -23,6 +16,7 @@ function watchPlot(gd, model) {
 }
 
 function watchGraphDiv(gd, model, prefix) {
+    console.info('Syncing plot of class \'' + gd.className + '\' to ' + model.$el.id + '.' + prefix)
     gd.on("plotly_selected", function (data) {
         var filteredEventData = filterEventData(gd, data, 'selected')
         if (!filteredEventData.isNil) { model[prefix + '_selected'] = filteredEventData.out }
