@@ -6,6 +6,10 @@ using Genie, Stipple, Stipple.Reexport
 
 const assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
 
+_symbol_dict(x) = x
+_symbol_dict(d::AbstractDict) =
+    Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
+
 #===#
 
 function deps_routes() :: Nothing
