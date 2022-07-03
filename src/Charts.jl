@@ -3,6 +3,8 @@ module Charts
 using Genie, Stipple, StipplePlotly
 using Stipple.Reexport
 
+import StipplePlotly._symbol_dict
+
 include("Layouts.jl")
 using .Layouts
 
@@ -494,7 +496,7 @@ Base.@kwdef mutable struct PlotData
   scene::Union{String,Nothing} = nothing
   sd::Union{Vector,Nothing} = nothing
   selected::Union{Dict,Nothing} = nothing
-  selectedpoints::Union{Float64,Int,String,Nothing} = nothing
+  selectedpoints::Union{Vector{<:Integer},Float64,Int,String,Nothing} = nothing
   showlegend::Union{Bool,Nothing} = nothing
   showscale::Union{Bool,Nothing} = nothing
   side::Union{String,Nothing} = nothing
@@ -573,7 +575,26 @@ const CONFIG_MAPPINGS = Dict(
   :displaymodebar => :displayModeBar
 )
 
+const PARSER_MAPPINGS = Dict(
+  :type => :plot
+)
+
 const Trace = PlotData
+
+
+function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
+  sd = _symbol_dict(d)
+  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
+  sd[:selectedpoints] = [sd[:selectedpoints]...]
+  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
+
+  PlotData(;sd...)
+end
+
+function Stipple.stipple_parse(T::Type{Vector{<:PlotData}}, d::Vector) 
+  @info "hi"
+  [stipple_parse(T, x) for x in d]
+end
 
 function Base.show(io::IO, pd::PlotData)
   output = "$(pd.plot): \n"
