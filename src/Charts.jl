@@ -57,6 +57,9 @@ const PLOT_TYPE_ISOSURFACE = "isosurface"
 
 const DEFAULT_CONFIG_TYPE = Ref{DataType}()
 
+kebapcase(s::String) = lowercase(replace(s, r"([A-Z])" => s"-\1"))
+kebapcase(s::Symbol) = Symbol(kebapcase(String(s)))
+
 register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
@@ -571,7 +574,26 @@ end
 const CONFIG_MAPPINGS = Dict(
   :scrollzoom => :scrollZoom,
   :staticplot => :staticPlot,
-  :displaymodebar => :displayModeBar
+  :displaymodebar => :displayModeBar,
+  :showlink => :showLink,
+)
+
+const CONGIG_DEFAULTS = Dict{Symbol, Any}(
+  :scrollZoom => false,
+  :staticPlot => false,
+  :showLink => false,
+  :editable => false,
+  :responsive => true,
+  :displayModeBar => true,
+  :modeBarButtonsToRemove => String[],
+  :modeBarButtonsToAdd => String[],
+  :toImageButtonOptions => Dict(
+    :format => "png",
+    :filename => "newplot",
+    :height => 500,
+    :width => 700,
+    :scale => 1,
+  )
 )
 
 const PARSER_MAPPINGS = Dict(
@@ -777,9 +799,6 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
   syncevents::Bool = false, syncprefix = "", class = "", kwargs...) :: String  where {LayoutType, ConfigType}
 
-  plotconfig = render(isnothing(config) ? configtype() : config)
-  plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
-
   plotlayout = if layout isa AbstractString
     Symbol(layout)
   elseif layout isa Symbol
@@ -787,6 +806,10 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   else
     Symbol(jsonrender(layout))
   end
+
+  plotconfig = render(isnothing(config) ? configtype() : config)
+  plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
+
   k = if plotconfig isa AbstractDict
     collect(keys(plotconfig))
   else
@@ -799,7 +822,8 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     kk
   end
   v = if plotconfig isa Union{AbstractString, Symbol}
-    v = Symbol.(plotconfig, ".", string.(k), " || ''")
+    config_defaults = jsonrender.(get.(Ref(CONGIG_DEFAULTS), replace(k, CONFIG_MAPPINGS...), ""))
+    v = Symbol.("typeof ", plotconfig, ".", string.(k), " == 'undefined' ? " , config_defaults, " : ", plotconfig, ".", string.(k))
   else
     v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
     # force display of false value for displaylogo
@@ -807,7 +831,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     isnothing(n) || v[n] != false || (v[n] = js"false")
     v = Symbol.(jsonrender.(v))
   end
-  pp = replace(k, CONFIG_MAPPINGS...) .=> v
+  pp = kebapcase.(replace(k, CONFIG_MAPPINGS...)) .=> v
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
   if syncevents || ! isempty(syncprefix)
     if isempty(syncprefix)
