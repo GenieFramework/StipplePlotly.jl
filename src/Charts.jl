@@ -1,9 +1,7 @@
 module Charts
 
 using Genie, Stipple, StipplePlotly
-using Stipple.Reexport
-
-import StipplePlotly._symbol_dict
+using Stipple.Reexport, Stipple.ParsingTools
 
 include("Layouts.jl")
 using .Layouts
@@ -96,7 +94,7 @@ function __init__()
     end
 
     function PlotlyBase.Plot(d::AbstractDict)
-      sd = PlotlyBase._symbol_dict(d)
+      sd = symbol_dict(d)
       data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
       layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
       frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
@@ -582,20 +580,6 @@ const PARSER_MAPPINGS = Dict(
 const Trace = PlotData
 
 
-function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
-  sd = _symbol_dict(d)
-  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
-  sd[:selectedpoints] = [sd[:selectedpoints]...]
-  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
-
-  PlotData(;sd...)
-end
-
-function Stipple.stipple_parse(T::Type{Vector{<:PlotData}}, d::Vector) 
-  @info "hi"
-  [stipple_parse(T, x) for x in d]
-end
-
 function Base.show(io::IO, pd::PlotData)
   output = "$(pd.plot): \n"
   for f in fieldnames(typeof(pd))
@@ -856,5 +840,62 @@ Base.@kwdef struct PlotWithEventsReadOnly
 end
 
 # #===#
+
+# Parsers
+
+function Base.convert(::Type{PlotData}, d::Dict{String, Any})
+  sd = symbol_dict(d)
+  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
+  sd[:selectedpoints] = [sd[:selectedpoints]...]
+  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
+
+  typify(PlotData, sd)
+end
+
+function Base.convert(::Type{T}, d::Dict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+  typify(T, d)
+end
+
+function Base.convert(::Type{T}, d::Dict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+  convert(T, symbol_dict(d))
+end
+
+function Base.convert(::Type{PlotLayout}, d::Dict{String, Any})
+  d = symbol_dict(d)
+
+  haskey(d, :title) && (d[:title] = d[:title] isa String ? PlotLayoutTitle(; text = d[a][:title]) : PlotLayoutTitle(; d[a][:title]...))
+  haskey(d, :xaxis) && (d[:xaxis] = [convert(PlotLayoutAxis, d[:xaxis])])
+
+  kk = collect(keys(d))
+
+  axes = kk[startswith.(string.(kk), r"xaxis\d")]
+  for a in axes
+      push!(get!(Dict{Symbol, Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
+      delete!(d, a)
+  end
+
+  axes = kk[startswith.(string.(kk), r"yaxis\d")]
+  for a in axes
+      push!(get!(Dict{Symbol, Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
+  end
+
+  convert(PlotLayout, d)
+end
+
+Base.convert(::Type{Vector{<:PlotData}}, dd::Vector) = PlotData[convert(PlotData, d) for d in dd]
+
+# enhance precompilation
+
+pl = PlotLayout(
+    xaxis = [
+        PlotLayoutAxis(index = 1, title = "1"),
+        PlotLayoutAxis(xy = "x", index = 2, title = "2")
+    ],
+    margin_r = 10,
+    margin_t = 20
+)
+
+d = JSON3.read(json(render(pl)), Dict{String, Any})
+convert(PlotLayout, d)
 
 end
