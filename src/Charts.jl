@@ -3,6 +3,8 @@ module Charts
 using Genie, Stipple, StipplePlotly
 using Stipple.Reexport, Stipple.ParsingTools
 
+import StipplePlotly._symbol_dict
+
 include("Layouts.jl")
 using .Layouts
 
@@ -136,7 +138,7 @@ end
 Generates a js script that forwards plotly events of a DOM element to its respective model fields,
 e.g. `plot_selected`, `plot_hover`, etc...
 If no prefix is given, it is taken from the class list which needs to contain at least one entry `'sync_[prefix]'`, e.g `sync_plot`.
-This function acts on plots that are already present in the UI. It is meant for the rare case of 
+This function acts on plots that are already present in the UI. It is meant for the rare case of
 plot-specific event-binding, e.g. in a backend listener.
 
 The normal way forwarding plot events is to call `watchplots()` in `js_mounted()`.
@@ -217,7 +219,7 @@ function watchplots(model::Union{Symbol, AbstractString} = "this"; observe = tru
   """watchPlots($model, $observe, $(isnothing(parentSelector) ? "''" : parentSelector))"""
 end
 
-function watchplots(model::Union{M, Type{M}}; observe = true, 
+function watchplots(model::Union{M, Type{M}}; observe = true,
                     parentSelector::Union{Nothing, AbstractString} = nothing) where M <: ReactiveModel
   watchplots(vm(model); observe, parentSelector)
 end
@@ -601,6 +603,19 @@ const PARSER_MAPPINGS = Dict(
 
 const Trace = PlotData
 
+
+function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
+  sd = _symbol_dict(d)
+  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
+  sd[:selectedpoints] = [sd[:selectedpoints]...]
+  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
+
+  PlotData(;sd...)
+end
+
+function Stipple.stipple_parse(T::Type{Vector{<:PlotData}}, d::Vector)
+  [stipple_parse(T, x) for x in d]
+end
 
 function Base.show(io::IO, pd::PlotData)
   output = "$(pd.plot): \n"
