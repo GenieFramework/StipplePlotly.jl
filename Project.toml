@@ -10,6 +10,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
+DataFrames = "1"
 Genie = "5"
 Requires = "1"
 Stipple = "0.23, 0.24, 0.25"
