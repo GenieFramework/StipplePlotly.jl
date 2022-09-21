@@ -10,9 +10,9 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "StipplePlotly API" => [
-          "Charts" => "api/charts.md",
-          "Layouts" => "api/layouts.md",
-          "StipplePlotly" => "api/stippleplotly.md",
+          "Charts" => "API/charts.md",
+          "Layouts" => "API/layouts.md",
+          "StipplePlotly" => "API/stippleplotly.md",
         ]
     ],
 )

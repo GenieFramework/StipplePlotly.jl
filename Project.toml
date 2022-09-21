@@ -6,14 +6,13 @@ version = "0.13.1"
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
-GenieSession = "03cc5b98-4f21-4eb6-99f2-22eced81f962"
-GenieSessionFileSession = "5c4fdc26-39e3-47cf-9034-e533e09961c2"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
 Genie = "5"
 Requires = "1"
+Stipple = "0.23, 0.24, 0.25"
 julia = "1.6"
 
 [extras]
