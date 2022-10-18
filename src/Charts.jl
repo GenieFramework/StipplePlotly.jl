@@ -862,7 +862,7 @@ end
 
 Base.@kwdef struct PlotWithEvents
   _data::R{Vector{PlotData}} = PlotData[]
-  _layout::R{Vector{PlotData}} = PlotData[]
+  _layout::R{PlotLayout} = PlotLayout()
   _selected::R{PlotlyEvent} = PlotlyEvent()
   _hover::R{PlotlyEvent} = PlotlyEvent()
   _click::R{PlotlyEvent} = PlotlyEvent()
@@ -871,7 +871,7 @@ end
 
 Base.@kwdef struct PlotWithEventsReadOnly
   _data::R{Vector{PlotData}} = PlotData[], READONLY
-  _layout::R{Vector{PlotData}} = PlotData[], READONLY
+  _layout::R{PlotLayout} = PlotLayout()
   _selected::R{PlotlyEvent} = PlotlyEvent()
   _hover::R{PlotlyEvent} = PlotlyEvent()
   _click::R{PlotlyEvent} = PlotlyEvent()
