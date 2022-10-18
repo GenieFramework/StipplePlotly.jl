@@ -4,6 +4,7 @@ using Genie, Stipple, StipplePlotly
 using Stipple.Reexport, Stipple.ParsingTools
 
 import StipplePlotly._symbol_dict
+import DataFrames
 
 include("Layouts.jl")
 using .Layouts
@@ -21,6 +22,7 @@ export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorB
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
 export PlotlyEvents, PlotWithEvents, PBPlotWithEvents, PlotWithEventsReadOnly, PBPlotWithEventsReadOnly
+export plotdata
 
 const PLOT_TYPE_LINE = "scatter"
 const PLOT_TYPE_SCATTER = "scatter"
@@ -602,6 +604,30 @@ const PARSER_MAPPINGS = Dict(
 )
 
 const Trace = PlotData
+
+
+function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol,
+                  mode = "markers", plottype = StipplePlotly.Charts.PLOT_TYPE_SCATTER, kwargs...) :: Vector{PlotData}
+  plot_collection = Vector{PlotData}()
+
+  for gf in Array(data[:, groupfeature]) |> unique!
+    x_feature_collection, y_feature_collection = Vector{Float64}(), Vector{Float64}()
+    for r in eachrow(data[data[!, groupfeature] .== gf, :])
+      push!(x_feature_collection, (r[xfeature]))
+      push!(y_feature_collection, (r[yfeature]))
+    end
+    plot = PlotData(;
+            x = x_feature_collection,
+            y = y_feature_collection,
+            mode = mode,
+            name = string(gf),
+            plot = plottype,
+            kwargs...)
+    push!(plot_collection, plot)
+  end
+
+  plot_collection
+end
 
 
 function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
