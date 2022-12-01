@@ -606,15 +606,19 @@ const PARSER_MAPPINGS = Dict(
 const Trace = PlotData
 
 
-function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol,
+function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol, text::Union{Vector{String}, Nothing} = nothing,
                   mode = "markers", plottype = StipplePlotly.Charts.PLOT_TYPE_SCATTER, kwargs...) :: Vector{PlotData}
   plot_collection = Vector{PlotData}()
-
+  
   for gf in Array(data[:, groupfeature]) |> unique!
     x_feature_collection, y_feature_collection = Vector{Float64}(), Vector{Float64}()
-    for r in eachrow(data[data[!, groupfeature] .== gf, :])
+    text_collection = Vector{String}()
+    group_indices = data[!, groupfeature] .== gf
+    grouptext = text isa Vector{String} ? text[group_indices] : nothing
+    for (index,r) in enumerate(eachrow(data[group_indices, :]))
       push!(x_feature_collection, (r[xfeature]))
       push!(y_feature_collection, (r[yfeature]))
+      text isa Vector{String} ? push!(text_collection, (grouptext[index])) : nothing
     end
     plot = PlotData(;
             x = x_feature_collection,
@@ -622,6 +626,7 @@ function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol
             mode = mode,
             name = string(gf),
             plot = plottype,
+            text = isnothing(text) ? text : text_collection,
             kwargs...)
     push!(plot_collection, plot)
   end

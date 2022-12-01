@@ -1,8 +1,9 @@
 using StipplePlotly
 using Test
+using DataFrames
 
 @testset "StipplePlotly.jl" begin
 
-    @test 1 == 1
+    include("Charts.jl")
 
 end
