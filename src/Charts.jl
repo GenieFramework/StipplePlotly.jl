@@ -609,7 +609,7 @@ const Trace = PlotData
 function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol, text::Union{Vector{String}, Nothing} = nothing,
                   mode = "markers", plottype = StipplePlotly.Charts.PLOT_TYPE_SCATTER, kwargs...) :: Vector{PlotData}
   plot_collection = Vector{PlotData}()
-  
+
   for gf in Array(data[:, groupfeature]) |> unique!
     x_feature_collection, y_feature_collection = Vector{Float64}(), Vector{Float64}()
     text_collection = Vector{String}()
