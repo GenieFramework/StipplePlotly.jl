@@ -9,11 +9,11 @@ import DataFrames
 include("Layouts.jl")
 using .Layouts
 
-@reexport using .Layouts:PlotLayoutMapbox, MCenter, GeoProjection, PRotation,
-                        PlotLayoutGeo, PlotLayout, PlotAnnotation, ErrorBar, Font,
-                        ColorBar, PlotLayoutGrid, PlotLayoutAxis, PlotLayoutTitle, PlotLayoutLegend
+@reexport using .Layouts: PlotLayoutMapbox, MCenter, GeoProjection, PRotation,
+  PlotLayoutGeo, PlotLayout, PlotAnnotation, ErrorBar, Font,
+  ColorBar, PlotLayoutGrid, PlotLayoutAxis, PlotLayoutTitle, PlotLayoutLegend
 
-using .Layouts:optionals!
+using .Layouts: optionals!
 
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
@@ -62,7 +62,7 @@ const DEFAULT_CONFIG_TYPE = Ref{DataType}()
 kebapcase(s::String) = lowercase(replace(s, r"([A-Z])" => s"-\1"))
 kebapcase(s::Symbol) = Symbol(kebapcase(String(s)))
 
-register_normal_element("plotly", context = @__MODULE__)
+register_normal_element("plotly", context=@__MODULE__)
 
 function __init__()
   DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
@@ -102,9 +102,9 @@ function __init__()
 
     function PlotlyBase.Plot(d::AbstractDict)
       sd = symbol_dict(d)
-      data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
+      data = haskey(sd, :data) && !isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
       layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
-      frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
+      frames = haskey(sd, :frames) && !isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
       config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
 
       PlotlyBase.Plot(data, layout, frames; config)
@@ -130,7 +130,7 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+function plotly(p::Symbol, args...; layout=Symbol(p, ".layout"), config=Symbol(p, ".config"), configtype=DEFAULT_CONFIG_TYPE[], kwargs...)
   plot("$p.data", args...; layout, config, configtype, kwargs...)
 end
 
@@ -217,12 +217,12 @@ function handlers(model)
 end
 ```
 """
-function watchplots(model::Union{Symbol, AbstractString} = "this"; observe = true, parentSelector::Union{Nothing, AbstractString} = nothing)
+function watchplots(model::Union{Symbol,AbstractString}="this"; observe=true, parentSelector::Union{Nothing,AbstractString}=nothing)
   """watchPlots($model, $observe, $(isnothing(parentSelector) ? "''" : parentSelector))"""
 end
 
-function watchplots(model::Union{M, Type{M}}; observe = true,
-                    parentSelector::Union{Nothing, AbstractString} = nothing) where M <: ReactiveModel
+function watchplots(model::Union{M,Type{M}}; observe=true,
+  parentSelector::Union{Nothing,AbstractString}=nothing) where {M<:ReactiveModel}
   watchplots(vm(model); observe, parentSelector)
 end
 
@@ -261,12 +261,12 @@ function Base.show(io::IO, pdl::PlotlyLine)
 end
 
 function Base.Dict(pdl::PlotlyLine)
-  trace = Dict{Symbol, Any}()
+  trace = Dict{Symbol,Any}()
 
   optionals!(trace, pdl, [:color, :width, :shape, :smoothing, :dash, :simplify, :cauto, :cmin, :cmax, :cmid, :colorscale, :autocolorscale, :reversescale, :outliercolor, :outlierwidth])
 end
 
-function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pdl::PlotlyLine, fieldname::Union{Symbol,Nothing}=nothing)
   Dict(pdl)
 end
 
@@ -351,7 +351,7 @@ function Base.show(io::IO, pdm::PlotDataMarker)
 end
 
 function Base.Dict(pdm::PlotDataMarker)
-  trace = Dict{Symbol, Any}()
+  trace = Dict{Symbol,Any}()
   (pdm.line !== nothing) && (trace[:line] = Dict(pdm.line))
   (pdm.colorbar !== nothing) && (trace[:colorbar] = Dict(pdm.colorbar))
 
@@ -361,7 +361,7 @@ function Base.Dict(pdm::PlotDataMarker)
     :showscale, :size, :sizemin, :sizemode, :sizeref, :symbol])
 end
 
-function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pdm::PlotDataMarker, fieldname::Union{Symbol,Nothing}=nothing)
   Dict(pdm)
 end
 
@@ -428,7 +428,7 @@ Base.@kwdef mutable struct PlotData
   groupnorm::Union{String,Nothing} = nothing
   header::Union{Dict,Nothing} = nothing
   hidesurface::Union{Bool,Nothing} = nothing
-  high::Union{Dict,Nothing} = nothing
+  high::Union{Vector,Nothing} = nothing
   histfunc::Union{String,Nothing} = nothing
   histnorm::Union{String,Nothing} = nothing
   hole::Union{Float64,Nothing} = nothing
@@ -581,7 +581,7 @@ const CONFIG_MAPPINGS = Dict(
   :showlink => :showLink,
 )
 
-const CONGIG_DEFAULTS = Dict{Symbol, Any}(
+const CONGIG_DEFAULTS = Dict{Symbol,Any}(
   :scrollZoom => false,
   :staticPlot => false,
   :showLink => false,
@@ -606,8 +606,8 @@ const PARSER_MAPPINGS = Dict(
 const Trace = PlotData
 
 
-function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol, text::Union{Vector{String}, Nothing} = nothing,
-                  mode = "markers", plottype = StipplePlotly.Charts.PLOT_TYPE_SCATTER, kwargs...) :: Vector{PlotData}
+function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol; groupfeature::Symbol, text::Union{Vector{String},Nothing}=nothing,
+  mode="markers", plottype=StipplePlotly.Charts.PLOT_TYPE_SCATTER, kwargs...)::Vector{PlotData}
   plot_collection = Vector{PlotData}()
 
   for gf in Array(data[:, groupfeature]) |> unique!
@@ -615,19 +615,19 @@ function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol
     text_collection = Vector{String}()
     group_indices = data[!, groupfeature] .== gf
     grouptext = text isa Vector{String} ? text[group_indices] : nothing
-    for (index,r) in enumerate(eachrow(data[group_indices, :]))
+    for (index, r) in enumerate(eachrow(data[group_indices, :]))
       push!(x_feature_collection, (r[xfeature]))
       push!(y_feature_collection, (r[yfeature]))
       text isa Vector{String} ? push!(text_collection, (grouptext[index])) : nothing
     end
     plot = PlotData(;
-            x = x_feature_collection,
-            y = y_feature_collection,
-            mode = mode,
-            name = string(gf),
-            plot = plottype,
-            text = isnothing(text) ? text : text_collection,
-            kwargs...)
+      x=x_feature_collection,
+      y=y_feature_collection,
+      mode=mode,
+      name=string(gf),
+      plot=plottype,
+      text=isnothing(text) ? text : text_collection,
+      kwargs...)
     push!(plot_collection, plot)
   end
 
@@ -635,13 +635,13 @@ function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol
 end
 
 
-function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
+function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String,Any})
   sd = _symbol_dict(d)
   sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
   sd[:selectedpoints] = [sd[:selectedpoints]...]
-  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
+  sd = Dict{Symbol,Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
 
-  PlotData(;sd...)
+  PlotData(; sd...)
 end
 
 function Stipple.stipple_parse(T::Type{Vector{<:PlotData}}, d::Vector)
@@ -697,50 +697,50 @@ function Base.Dict(pd::PlotData)
   (pd.colorbar !== nothing) && (trace[:colorbar] = Dict(pd.colorbar))
 
   optionals!(trace, pd, [:align, :alignmentgroup, :alphahull, :anchor, :aspectratio, :autobinx, :autobiny,
-                        :autocolorscale, :autocontour, :automargin,
-                        :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
-                        :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
-                        :coloraxis, :colorscale, :columnorder, :columnwidth,
-                        :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
-                        :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
-                        :facecolor, :fill, :fillcolor, :flatshading,
-                        :gauge, :groupnorm,
-                        :header, :hidesurface, :high, :histfunc, :histnorm,
-                        :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
-                        :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
-                        :j, :jitter, :k,
-                        :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
-                        :maxdisplayed, :meanline, :measure, :median, :meta,
-                        :mode,
-                        :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
-                        :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
-                        :points, :pointpos, :projection, :pull,
-                        :q1, :q3, :quartilemethod,
-                        :reversescale, :rotation,
-                        :scalegroup, :scalemode, :scene, :sd,
-                        :selected, :selectedpoints, :showlegend,
-                        :showscale, :side, :sizemode, :sizeref, :slices, :sort, :source, :spaceframe, :span, :spanmode,
-                        :stackgaps, :stackgroup, :starts, :surface, :surfaceaxis, :surfacecolor,
-                        :text, :textangle, :textinfo,
-                        :textposition, :texttemplate, :tickwidth, :totals, :transpose,
-                        :uirevision, :upperfence, :unselected,
-                        :values, :vertexcolor, :visible,
-                        :whiskerwidth, :width,
-                        :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
-                        :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
-                        :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth,
-                        :geojson, :lat, :locations, :lon, :locationmode])
+    :autocolorscale, :autocontour, :automargin,
+    :bandwidth, :base, :baseratio, :bingroup, :box, :boxmean, :boxpoints,
+    :cauto, :cells, :cliponaxis, :close, :color, :cmax, :cmid, :cmin,
+    :coloraxis, :colorscale, :columnorder, :columnwidth,
+    :connectgaps, :connector, :constraintext, :contour, :contours, :cumulative, :customdata,
+    :decreasing, :delta, :delaunayaxis, :direction, :dlabel, :domain, :dx, :dy,
+    :facecolor, :fill, :fillcolor, :flatshading,
+    :gauge, :groupnorm,
+    :header, :hidesurface, :high, :histfunc, :histnorm,
+    :hole, :hovertext, :hoverinfo, :hovertemplate, :hoverlabel, :hoveron, :hoverongaps,
+    :i, :intensity, :intensitymode, :ids, :increasing, :insidetextanchor, :insidetextorientation, :isomax, :isomin,
+    :j, :jitter, :k,
+    :labels, :label0, :legendgroup, :lighting, :lightposition, :low, :lowerfence,
+    :maxdisplayed, :meanline, :measure, :median, :meta,
+    :mode,
+    :name, :nbinsx, :nbinsy, :ncontours, :notched, :notchwidth, :notchspan, :number,
+    :offset, :offsetgroup, :opacity, :opacityscale, :colormodel, :open, :orientation,
+    :points, :pointpos, :projection, :pull,
+    :q1, :q3, :quartilemethod,
+    :reversescale, :rotation,
+    :scalegroup, :scalemode, :scene, :sd,
+    :selected, :selectedpoints, :showlegend,
+    :showscale, :side, :sizemode, :sizeref, :slices, :sort, :source, :spaceframe, :span, :spanmode,
+    :stackgaps, :stackgroup, :starts, :surface, :surfaceaxis, :surfacecolor,
+    :text, :textangle, :textinfo,
+    :textposition, :texttemplate, :tickwidth, :totals, :transpose,
+    :uirevision, :upperfence, :unselected,
+    :values, :vertexcolor, :visible,
+    :whiskerwidth, :width,
+    :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
+    :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
+    :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth,
+    :geojson, :lat, :locations, :lon, :locationmode])
 end
 
-function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pd::PlotData, fieldname::Union{Symbol,Nothing}=nothing)
   [Dict(pd)]
 end
 
-function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pdv::Vector{PlotData}, fieldname::Union{Symbol,Nothing}=nothing)
   [Dict(pd) for pd in pdv]
 end
 
-function Stipple.render(pdvv::Vector{Vector{PlotData}}, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pdvv::Vector{Vector{PlotData}}, fieldname::Union{Symbol,Nothing}=nothing)
   [[Dict(pd) for pd in pdv] for pdv in pdvv]
 end
 
@@ -775,10 +775,10 @@ function Base.show(io::IO, pc::PlotConfig)
 end
 
 function Base.Dict(pc::PlotConfig)
-  trace = Dict{Symbol, Any}()
+  trace = Dict{Symbol,Any}()
 
   if (pc.toimage_format in ["png", "svg", "jpeg", "webp"])
-    d = Dict{Symbol, Any}(:format => pc.toimage_format)
+    d = Dict{Symbol,Any}(:format => pc.toimage_format)
     d[:filename] = (pc.toimage_filename === nothing) ? "newplot" : pc.toimage_filename
     d[:height] = (pc.toimage_height === nothing) ? 500 : pc.toimage_height
     d[:width] = (pc.toimage_width === nothing) ? 700 : pc.toimage_width
@@ -788,22 +788,22 @@ function Base.Dict(pc::PlotConfig)
 
   optionals!(trace, pc, [:responsive, :editable, :scrollzoom, :staticplot, :displaymodebar, :displaylogo])
 
-  Dict{Symbol, Any}(replace(collect(keys(trace)), CONFIG_MAPPINGS...) .=> values(trace))
+  Dict{Symbol,Any}(replace(collect(keys(trace)), CONFIG_MAPPINGS...) .=> values(trace))
 end
 
-function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing} = nothing)
+function Stipple.render(pc::PlotConfig, fieldname::Union{Symbol,Nothing}=nothing)
   Dict(pc)
 end
 
 # =============
 
-function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
-                    mappings::Dict{String,String} = Dict{String,String}())::NamedTuple
+function attributes(kwargs::Union{Vector{<:Pair},Base.Iterators.Pairs,Dict},
+  mappings::Dict{String,String}=Dict{String,String}())::NamedTuple
 
-  attrs = Pair{Symbol, Any}[]
+  attrs = Pair{Symbol,Any}[]
   mapped = false
 
-  for (k,v) in kwargs
+  for (k, v) in kwargs
     v === nothing && continue
     mapped = false
 
@@ -811,9 +811,9 @@ function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
       k = mappings[string(k)]
     end
 
-    attr_key = string((isa(v, Symbol) && ! startswith(string(k), ":") &&
-      ! ( startswith(string(k), "v-") || startswith(string(k), "v" * Genie.config.html_parser_char_dash) ) ? ":" : ""), "$k") |> Symbol
-    attr_val = isa(v, Symbol) && ! startswith(string(k), ":") ? Stipple.julia_to_vue(v) : v
+    attr_key = string((isa(v, Symbol) && !startswith(string(k), ":") &&
+                       !(startswith(string(k), "v-") || startswith(string(k), "v" * Genie.config.html_parser_char_dash)) ? ":" : ""), "$k") |> Symbol
+    attr_val = isa(v, Symbol) && !startswith(string(k), ":") ? Stipple.julia_to_vue(v) : v
 
     push!(attrs, attr_key => attr_val)
   end
@@ -826,9 +826,9 @@ function jsonrender(x)
 end
 
 function plot(data::Union{Symbol,AbstractString}, args...;
-  layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
-  config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
-  syncevents::Bool = false, syncprefix = "", class = "", kwargs...) :: String  where {LayoutType, ConfigType}
+  layout::Union{Symbol,AbstractString,LayoutType}=Charts.PlotLayout(),
+  config::Union{Symbol,AbstractString,Nothing,ConfigType}=nothing, configtype=Charts.PlotConfig,
+  syncevents::Bool=false, syncprefix="", class="", kwargs...)::String where {LayoutType,ConfigType}
 
   plotlayout = if layout isa AbstractString
     Symbol(layout)
@@ -847,14 +847,14 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     kk = collect(fieldnames(configtype))
     if configtype == StipplePlotly.PlotConfig
       # remove fields with underscore and add respective rendering field (StipplePlotly)
-      kk = kk[.! occursin.("_", string.(kk))]
+      kk = kk[.!occursin.("_", string.(kk))]
       push!(kk, :toImageButtonOptions)
     end
     kk
   end
-  v = if plotconfig isa Union{AbstractString, Symbol}
+  v = if plotconfig isa Union{AbstractString,Symbol}
     config_defaults = jsonrender.(get.(Ref(CONGIG_DEFAULTS), replace(k, CONFIG_MAPPINGS...), ""))
-    v = Symbol.("typeof ", plotconfig, ".", string.(k), " == 'undefined' ? " , config_defaults, " : ", plotconfig, ".", string.(k))
+    v = Symbol.("typeof ", plotconfig, ".", string.(k), " == 'undefined' ? ", config_defaults, " : ", plotconfig, ".", string.(k))
   else
     v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
     # force display of false value for displaylogo
@@ -864,7 +864,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   end
   pp = kebapcase.(replace(k, CONFIG_MAPPINGS...)) .=> v
   plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
-  if syncevents || ! isempty(syncprefix)
+  if syncevents || !isempty(syncprefix)
     if isempty(syncprefix)
       datastr = String(data)
       syncprefix = endswith(datastr, "data") && length(datastr) > 4 ? datastr[1:end-4] : datastr
@@ -872,17 +872,17 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     end
     class = isempty(class) ? "sync_$syncprefix" : "sync_$syncprefix $class"
   end
-  sync = Pair{Symbol, String}[]
+  sync = Pair{Symbol,String}[]
   isempty(class) || push!(sync, :class => class)
 
   plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp..., sync...])...)
 end
 
-Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
+Base.print(io::IO, a::Union{PlotLayout,PlotConfig}) = print(io, Stipple.json(a))
 
 # =============
 
-const PlotlyEvent = Dict{String, Any}
+const PlotlyEvent = Dict{String,Any}
 
 Base.@kwdef struct PlotlyEvents
   _selected::R{PlotlyEvent} = PlotlyEvent()
@@ -913,40 +913,40 @@ end
 
 # Parsers
 
-function Base.convert(::Type{PlotData}, d::Dict{String, Any})
+function Base.convert(::Type{PlotData}, d::Dict{String,Any})
   sd = symbol_dict(d)
   sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
   sd[:selectedpoints] = [sd[:selectedpoints]...]
-  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
+  sd = Dict{Symbol,Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
 
   typify(PlotData, sd)
 end
 
-function Base.convert(::Type{T}, d::Dict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+function Base.convert(::Type{T}, d::Dict{Symbol,Any}) where {T<:Union{Font,PlotLayout,PlotLayoutAxis,PlotLayoutGeo,PlotLayoutGrid,PlotLayoutLegend,PlotLayoutMapbox,PlotLayoutTitle}}
   typify(T, d)
 end
 
-function Base.convert(::Type{T}, d::Dict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+function Base.convert(::Type{T}, d::Dict{String,Any}) where {T<:Union{Font,PlotLayoutAxis,PlotLayoutGeo,PlotLayoutGrid,PlotLayoutLegend,PlotLayoutMapbox,PlotLayoutTitle}}
   convert(T, symbol_dict(d))
 end
 
-function Base.convert(::Type{PlotLayout}, d::Dict{String, Any})
+function Base.convert(::Type{PlotLayout}, d::Dict{String,Any})
   d = symbol_dict(d)
 
-  haskey(d, :title) && (d[:title] = d[:title] isa String ? PlotLayoutTitle(; text = d[a][:title]) : PlotLayoutTitle(; d[a][:title]...))
+  haskey(d, :title) && (d[:title] = d[:title] isa String ? PlotLayoutTitle(; text=d[a][:title]) : PlotLayoutTitle(; d[a][:title]...))
   haskey(d, :xaxis) && (d[:xaxis] = [convert(PlotLayoutAxis, d[:xaxis])])
 
   kk = collect(keys(d))
 
   axes = kk[startswith.(string.(kk), r"xaxis\d")]
   for a in axes
-      push!(get!(Dict{Symbol, Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
-      delete!(d, a)
+    push!(get!(Dict{Symbol,Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
+    delete!(d, a)
   end
 
   axes = kk[startswith.(string.(kk), r"yaxis\d")]
   for a in axes
-      push!(get!(Dict{Symbol, Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
+    push!(get!(Dict{Symbol,Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
   end
 
   convert(PlotLayout, d)
@@ -957,15 +957,15 @@ Base.convert(::Type{Vector{<:PlotData}}, dd::Vector) = PlotData[convert(PlotData
 # enhance precompilation
 
 pl = PlotLayout(
-    xaxis = [
-        PlotLayoutAxis(index = 1, title = "1"),
-        PlotLayoutAxis(xy = "x", index = 2, title = "2")
-    ],
-    margin_r = 10,
-    margin_t = 20
+  xaxis=[
+    PlotLayoutAxis(index=1, title="1"),
+    PlotLayoutAxis(xy="x", index=2, title="2")
+  ],
+  margin_r=10,
+  margin_t=20
 )
 
-d = JSON3.read(json(render(pl)), Dict{String, Any})
+d = JSON3.read(json(render(pl)), Dict{String,Any})
 convert(PlotLayout, d)
 
 end
