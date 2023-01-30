@@ -428,7 +428,7 @@ Base.@kwdef mutable struct PlotData
   groupnorm::Union{String,Nothing} = nothing
   header::Union{Dict,Nothing} = nothing
   hidesurface::Union{Bool,Nothing} = nothing
-  high::Union{Dict,Nothing} = nothing
+  high::Union{Vector,Nothing} = nothing
   histfunc::Union{String,Nothing} = nothing
   histnorm::Union{String,Nothing} = nothing
   hole::Union{Float64,Nothing} = nothing
