@@ -6,13 +6,13 @@ version = "0.13.3"
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
-Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
 DataFrames = "1"
 Genie = "5"
-Requires = "1"
+PlotlyBase = "8"
 Stipple = "0.23, 0.24, 0.25, 0.26"
 julia = "1.6"
 

@@ -2,7 +2,6 @@ module Layouts
 
 using Genie, Stipple, StipplePlotly
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
-using Requires
 
 const LAYOUT_TITLE_REF_CONTAINER = "container"
 const LAYOUT_TITLE_REF_PAPER = "paper"
