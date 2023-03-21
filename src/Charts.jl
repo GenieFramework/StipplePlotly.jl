@@ -1,7 +1,6 @@
 module Charts
 
 using Genie, Stipple, StipplePlotly
-using PlotlyBase
 using Stipple.Reexport, Stipple.ParsingTools
 
 import StipplePlotly._symbol_dict
@@ -10,6 +9,7 @@ import DataFrames
 include("Layouts.jl")
 using .Layouts
 
+@reexport using PlotlyBase
 @reexport using .Layouts:PlotLayoutMapbox, MCenter, GeoProjection, PRotation,
                         PlotLayoutGeo, PlotLayout, PlotAnnotation, ErrorBar, Font,
                         ColorBar, PlotLayoutGrid, PlotLayoutAxis, PlotLayoutTitle, PlotLayoutLegend
@@ -63,7 +63,7 @@ kebapcase(s::Symbol) = Symbol(kebapcase(String(s)))
 register_normal_element("plotly", context = @__MODULE__)
 
 """
-    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = Union{PlotConfig, PlotlyBase.PlotConfig}, kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
 
 This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
 # Example
@@ -78,8 +78,8 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = Union{PlotConfig, PlotlyBase.PlotConfig}, kwargs...)
-  plot("$p.data", args...; layout, config, configtype, kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = PlotlyBase.PlotConfig, kwargs...)
+  plot(p, args...; layout, config, configtype, kwargs...)
 end
 
 """
@@ -770,7 +770,7 @@ function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
 end
 
 function jsonrender(x)
-  replace(json(render(x)), "'" => raw"\'", '"' => ''')
+  replace(Stipple.json(render(x)), "'" => raw"\'", '"' => ''')
 end
 
 function plot(data::Union{Symbol,AbstractString}, args...;
