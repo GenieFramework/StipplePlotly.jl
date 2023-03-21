@@ -12,7 +12,7 @@ Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 [compat]
 DataFrames = "1"
 Genie = "5"
-PlotlyBase = "8"
+PlotlyBase = "0.8"
 Stipple = "0.26"
 julia = "1.6"
 
