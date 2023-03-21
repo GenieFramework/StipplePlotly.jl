@@ -57,17 +57,13 @@ const PLOT_TYPE_STREAMTUBE = "streamtube"
 const PLOT_TYPE_VOLUME = "volume"
 const PLOT_TYPE_ISOSURFACE = "isosurface"
 
-const DEFAULT_CONFIG_TYPE = Ref{DataType}()
-
-# DEFAULT_CONFIG_TYPE[] = PlotConfig
-
 kebapcase(s::String) = lowercase(replace(s, r"([A-Z])" => s"-\1"))
 kebapcase(s::Symbol) = Symbol(kebapcase(String(s)))
 
 register_normal_element("plotly", context = @__MODULE__)
 
 """
-    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = Union{PlotConfig, PlotlyBase.PlotConfig}, kwargs...)
 
 This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
 # Example
@@ -82,7 +78,7 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = Union{PlotConfig, PlotlyBase.PlotConfig}, kwargs...)
   plot("$p.data", args...; layout, config, configtype, kwargs...)
 end
 
@@ -833,7 +829,6 @@ end
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
 
 # =============
-DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
 
 Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
 StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
