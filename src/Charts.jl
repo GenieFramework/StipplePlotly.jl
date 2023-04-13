@@ -381,7 +381,7 @@ Base.@kwdef mutable struct PlotData
   autocontour::Union{Bool,Nothing} = nothing
   automargin::Union{Bool,Nothing} = nothing
   bandwidth::Union{Float64,Int,Nothing} = nothing
-  base::Union{Float64,Int,String,Nothing} = nothing
+  base::Union{Vector,Float64,Int,String,Nothing} = nothing
   baseratio::Union{Float64,Int,Nothing} = nothing
   bingroup::Union{String,Nothing} = nothing
   box::Union{Dict,Nothing} = nothing
