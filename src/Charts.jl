@@ -183,7 +183,7 @@ julia> plot("plot.data", syncprefix = "plot1")
 
 # Example
 ```julia
-@reactive! mutable struct Example <: ReactiveModel
+@vars Example begin
     plot::R{Plot} = Plot()
     plot_selected::R{Dict{String, Any}} = Dict{String, Any}()
     plot_hover::R{Dict{String, Any}} = Dict{String, Any}()
