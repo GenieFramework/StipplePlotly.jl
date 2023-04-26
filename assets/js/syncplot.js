@@ -51,6 +51,7 @@ function watchGraphDiv(gd, model, prefix) {
             br = gd.getBoundingClientRect()
             x = layout.xaxis.p2c(event.x - layout.margin.l - br.x)
             y = layout.yaxis.p2c(event.y - layout.margin.t - br.y)
+            msg = {cursor: {x: x, y: y}}
         } else {
             if (layout.hasOwnProperty('geo')) {
                 geo = layout.geo
@@ -61,8 +62,9 @@ function watchGraphDiv(gd, model, prefix) {
             }
             x = geo._subplot.xaxis.p2c()
             y = geo._subplot.yaxis.p2c()
+            msg = {cursor: {lon: x, lat: y}}
         }
-        model[prefix + '_click'] = {cursor: {x: x, y: y}}
+        model[prefix + '_click'] = msg
     }
 }
 
