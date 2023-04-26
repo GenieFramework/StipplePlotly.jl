@@ -44,6 +44,26 @@ function watchGraphDiv(gd, model, prefix) {
         var filteredEventData = filterEventData(gd, data, 'relayout')
         if (!filteredEventData.isNil) { model[prefix + '_relayout'] = filteredEventData.out }
     })
+
+    gd.onclick = function (event) {
+        var layout = gd._fullLayout
+        if (layout.hasOwnProperty('xaxis')) {
+            br = gd.getBoundingClientRect()
+            x = layout.xaxis.p2c(event.x - layout.margin.l - br.x)
+            y = layout.yaxis.p2c(event.y - layout.margin.t - br.y)
+        } else {
+            if (layout.hasOwnProperty('geo')) {
+                geo = layout.geo
+            } else if (layout.hasOwnProperty('mapbox')) {
+                geo = layout.mapbox
+            } else {
+                return
+            }
+            x = geo._subplot.xaxis.p2c()
+            y = geo._subplot.yaxis.p2c()
+        }
+        model[prefix + '_click'] = {cursor: {x: x, y: y}}
+    }
 }
 
 function type(obj) {
