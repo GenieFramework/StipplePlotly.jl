@@ -16,6 +16,33 @@ function watchPlot(gd, model) {
 }
 
 function watchGraphDiv(gd, model, prefix) {
+    function eventToCursor(event) {
+        var layout = gd._fullLayout
+        x = event.offsetX - layout.margin.l
+        y = event.offsetY - layout.margin.t
+        if (x < 0 || y < 0 || x > layout.width || y > layout.height) {
+            return
+        }
+        
+        if (layout.hasOwnProperty('xaxis')) {
+            x = layout.xaxis.p2c(x)
+            y = layout.yaxis.p2c(y)
+            cursor = {cursor: {x: x, y: y}}
+        } else {
+            if (layout.hasOwnProperty('geo')) {
+                geo = layout.geo
+            } else if (layout.hasOwnProperty('mapbox')) {
+                geo = layout.mapbox
+            } else {
+                return
+            }
+            x = geo._subplot.xaxis.p2c()
+            y = geo._subplot.yaxis.p2c()
+            cursor = {cursor: {lon: x, lat: y}}
+        }
+        return cursor
+    }
+
     console.info('Syncing plot of class \'' + gd.className + '\' to ' + model.$el.id + '.' + prefix)
     gd.on("plotly_selected", function (data) {
         var filteredEventData = filterEventData(gd, data, 'selected')
@@ -46,25 +73,13 @@ function watchGraphDiv(gd, model, prefix) {
     })
 
     gd.onclick = function (event) {
-        var layout = gd._fullLayout
-        if (layout.hasOwnProperty('xaxis')) {
-            br = gd.getBoundingClientRect()
-            x = layout.xaxis.p2c(event.x - layout.margin.l - br.x)
-            y = layout.yaxis.p2c(event.y - layout.margin.t - br.y)
-            msg = {cursor: {x: x, y: y}}
-        } else {
-            if (layout.hasOwnProperty('geo')) {
-                geo = layout.geo
-            } else if (layout.hasOwnProperty('mapbox')) {
-                geo = layout.mapbox
-            } else {
-                return
-            }
-            x = geo._subplot.xaxis.p2c()
-            y = geo._subplot.yaxis.p2c()
-            msg = {cursor: {lon: x, lat: y}}
-        }
-        model[prefix + '_click'] = msg
+        cursor = eventToCursor(event)
+        if (cursor) { model[prefix + '_click'] = cursor }
+    }
+
+    gd.onmousemove = function (event) {
+        cursor = eventToCursor(event)
+        if (cursor) { model[prefix + '_hover'] = cursor }
     }
 }
 
