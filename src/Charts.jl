@@ -955,7 +955,7 @@ end
 Base.convert(::Type{Vector{<:PlotData}}, dd::Vector) = PlotData[convert(PlotData, d) for d in dd]
 
 # enhance precompilation
-
+#=
 pl = PlotLayout(
     xaxis = [
         PlotLayoutAxis(index = 1, title = "1"),
@@ -967,5 +967,6 @@ pl = PlotLayout(
 
 d = JSON3.read(json(render(pl)), Dict{String, Any})
 convert(PlotLayout, d)
+=#
 
 end
