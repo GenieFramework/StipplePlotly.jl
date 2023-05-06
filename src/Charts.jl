@@ -2,6 +2,7 @@ module Charts
 
 using Genie, Stipple, StipplePlotly
 using Stipple.Reexport, Stipple.ParsingTools
+import Stipple: stipple_parse
 
 import StipplePlotly._symbol_dict
 import DataFrames
@@ -110,7 +111,9 @@ function __init__()
       PlotlyBase.Plot(data, layout, frames; config)
     end
 
-    Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict) = PlotlyBase.Plot(d)
+    function stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict)
+      PlotlyBase.Plot(d)
+    end
   end
 end
 
@@ -634,20 +637,6 @@ function plotdata(data::DataFrames.DataFrame, xfeature::Symbol, yfeature::Symbol
   plot_collection
 end
 
-
-function Stipple.stipple_parse(::Type{PlotData}, d::Dict{String, Any})
-  sd = _symbol_dict(d)
-  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
-  sd[:selectedpoints] = [sd[:selectedpoints]...]
-  sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
-
-  PlotData(;sd...)
-end
-
-function Stipple.stipple_parse(T::Type{Vector{<:PlotData}}, d::Vector)
-  [stipple_parse(T, x) for x in d]
-end
-
 function Base.show(io::IO, pd::PlotData)
   output = "$(pd.plot): \n"
   for f in fieldnames(typeof(pd))
@@ -913,28 +902,32 @@ end
 
 # Parsers
 
-function Base.convert(::Type{PlotData}, d::Dict{String, Any})
+function stipple_parse(::Type{PlotData}, d::Dict{String, Any})
   sd = symbol_dict(d)
-  sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text]))
-  sd[:selectedpoints] = [sd[:selectedpoints]...]
+  haskey(sd, :text) && (sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text])))
+  haskey(sd, :selectedpoints) && (sd[:selectedpoints] = [sd[:selectedpoints]...])
   sd = Dict{Symbol, Any}(replace(collect(keys(sd)), PARSER_MAPPINGS...) .=> values(sd))
 
+  # PlotData(;sd...)
   typify(PlotData, sd)
 end
 
-function Base.convert(::Type{T}, d::Dict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+function stipple_parse(::Type{Vector{<:PlotData}}, dd::Vector)
+    PlotData[stipple_parse(PlotData, d) for d in dd]
+end
+function stipple_parse(::Type{T}, d::Dict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
   typify(T, d)
 end
 
-function Base.convert(::Type{T}, d::Dict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
-  convert(T, symbol_dict(d))
+function stipple_parse(::Type{T}, d::Dict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+  stipple_parse(T, symbol_dict(d))
 end
 
-function Base.convert(::Type{PlotLayout}, d::Dict{String, Any})
+function stipple_parse(::Type{PlotLayout}, d::Dict{String, Any})
   d = symbol_dict(d)
 
   haskey(d, :title) && (d[:title] = d[:title] isa String ? PlotLayoutTitle(; text = d[a][:title]) : PlotLayoutTitle(; d[a][:title]...))
-  haskey(d, :xaxis) && (d[:xaxis] = [convert(PlotLayoutAxis, d[:xaxis])])
+  haskey(d, :xaxis) && (d[:xaxis] = [stipple_parse(PlotLayoutAxis, d[:xaxis])])
 
   kk = collect(keys(d))
 
@@ -949,10 +942,9 @@ function Base.convert(::Type{PlotLayout}, d::Dict{String, Any})
       push!(get!(Dict{Symbol, Any}, d, :xaxis), PlotLayoutAxis(; d[a]...))
   end
 
-  convert(PlotLayout, d)
+  stipple_parse(PlotLayout, d)
 end
 
-Base.convert(::Type{Vector{<:PlotData}}, dd::Vector) = PlotData[convert(PlotData, d) for d in dd]
 
 # enhance precompilation
 #=
@@ -966,7 +958,7 @@ pl = PlotLayout(
 )
 
 d = JSON3.read(json(render(pl)), Dict{String, Any})
-convert(PlotLayout, d)
+stipple_parse(PlotLayout, d)
 =#
 
 end
