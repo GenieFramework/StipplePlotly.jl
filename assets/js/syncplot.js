@@ -79,7 +79,7 @@ function watchGraphDiv(gd, model, prefix) {
 
     gd.onmousemove = function (event) {
         cursor = eventToCursor(event)
-        if (cursor) { model[prefix + '_hover'] = cursor }
+        if (cursor) { model[prefix + '_cursor'] = cursor }
     }
 }
 
