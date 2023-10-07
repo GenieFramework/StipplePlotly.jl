@@ -72,9 +72,8 @@ function __init__()
     DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
 
     Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
-    StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.RawType()
-    StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.RawType()
-    JSON3.rawbytes(x::Union{PlotlyBase.HasFields,PlotlyBase.PlotConfig}) = codeunits(PlotlyBase.JSON.json(x))
+    StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.DictType()
+    StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.DictType()
 
     function Base.Dict(p::PlotlyBase.Plot)
       Dict(
