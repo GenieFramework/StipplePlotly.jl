@@ -1,6 +1,7 @@
 module StipplePlotly
 
 using Genie, Stipple, Stipple.Reexport, Stipple.ParsingTools
+using Requires
 
 #===#
 
@@ -83,6 +84,29 @@ include("Layouts.jl")
 function __init__()
   deps_routes()
   Stipple.deps!(@__MODULE__, deps)
+
+  @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
+    @static if !isdefined(Base, :get_extension)
+      include("../ext/StipplePlotlyPlotlyBaseExt.jl")
+    end
+
+    export PBPlotWithEvents, PBPlotWithEventsReadOnly
+    Base.@kwdef struct PBPlotWithEvents
+      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot()
+      _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    end
+
+    Base.@kwdef struct PBPlotWithEventsReadOnly
+      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot(), READONLY
+      _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+      _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    end
+  end
 end
 
 end # module

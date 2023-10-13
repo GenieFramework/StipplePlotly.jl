@@ -2,7 +2,7 @@ using StipplePlotly
 using Test
 using DataFrames
 
-@testset "StipplePlotly.jl" begin
+@testset verbose = true "Charts" begin
 
     include("Charts.jl")
 

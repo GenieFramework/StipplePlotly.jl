@@ -17,12 +17,11 @@ using .Layouts
 using .Layouts:optionals!
 
 import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
-using Requires
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot, watchplots
 export PlotLayoutGrid, PlotLayoutAxis
 export PlotConfig, PlotLayoutTitle, PlotLayoutLegend, PlotlyLine, PlotDataMarker
-export PlotlyEvents, PlotWithEvents, PBPlotWithEvents, PlotWithEventsReadOnly, PBPlotWithEventsReadOnly
+export PlotlyEvents, PlotWithEvents, PlotWithEventsReadOnly
 export plotdata
 
 const PLOT_TYPE_LINE = "scatter"
@@ -67,57 +66,20 @@ register_normal_element("plotly", context = @__MODULE__)
 
 function __init__()
   DEFAULT_CONFIG_TYPE[] = Charts.PlotConfig
+end
 
-  @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
-    DEFAULT_CONFIG_TYPE[] = PlotlyBase.PlotConfig
-
-    Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
-    StructTypes.StructType(::Type{<:PlotlyBase.HasFields}) = JSON3.DictType()
-    StructTypes.StructType(::Type{PlotlyBase.PlotConfig}) = JSON3.DictType()
-
-    function Base.Dict(p::PlotlyBase.Plot)
-      Dict(
-        :data => p.data,
-        :layout => p.layout,
-        :frames => p.frames,
-        :config => p.config
-      )
-    end
-
-    Base.@kwdef struct PBPlotWithEvents
-      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot()
-      _selected::R{PlotlyEvent} = PlotlyEvent()
-      _hover::R{PlotlyEvent} = PlotlyEvent()
-      _click::R{PlotlyEvent} = PlotlyEvent()
-      _relayout::R{PlotlyEvent} = PlotlyEvent()
-    end
-
-    Base.@kwdef struct PBPlotWithEventsReadOnly
-      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot(), READONLY
-      _selected::R{PlotlyEvent} = PlotlyEvent()
-      _hover::R{PlotlyEvent} = PlotlyEvent()
-      _click::R{PlotlyEvent} = PlotlyEvent()
-      _relayout::R{PlotlyEvent} = PlotlyEvent()
-    end
-
-    function PlotlyBase.Plot(d::AbstractDict)
-      sd = symbol_dict(d)
-      data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
-      layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
-      frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
-      config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
-
-      PlotlyBase.Plot(data, layout, frames; config)
-    end
-
-    function stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict)
-      PlotlyBase.Plot(d)
+function default_config_type()
+  if DEFAULT_CONFIG_TYPE[] == Charts.PlotConfig
+    pkgid = Base.identify_package("PlotlyBase")
+    if haskey(Base.loaded_modules, pkgid)
+      DEFAULT_CONFIG_TYPE[] = Base.loaded_modules[pkgid].PlotConfig
     end
   end
+  DEFAULT_CONFIG_TYPE[]
 end
 
 """
-    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), kwargs...)
 
 This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
 # Example
@@ -132,7 +94,7 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = DEFAULT_CONFIG_TYPE[], kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), kwargs...)
   plot("$p.data", args...; layout, config, configtype, kwargs...)
 end
 

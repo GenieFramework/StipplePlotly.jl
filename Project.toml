@@ -12,12 +12,20 @@ Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 [compat]
 DataFrames = "1"
 Genie = "5"
+PlotlyBase = "0.8.19"
 Requires = "1"
 Stipple = "0.23, 0.24, 0.25, 0.26, 0.27"
 julia = "1.6"
 
 [extras]
+PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[extensions]
+StipplePlotlyPlotlyBaseExt = "PlotlyBase"
+
 [targets]
-test = ["Test"]
+test = ["Test", "PlotlyBase"]
+
+[weakdeps]
+PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"

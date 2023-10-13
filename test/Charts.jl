@@ -7,7 +7,6 @@ function create_example_dataframe()
 end
 
 @testset "Scatter Plots" begin
-    @info "Test: Scatter Plots"
     @testset "Multiple Groups without Tooltips" begin
         df = create_example_dataframe()
         pd = plotdata(df, :X, :Y; groupfeature = :Group)
@@ -17,6 +16,7 @@ end
         @test isnothing(pd[1].text) 
         @test isnothing(pd[2].text) 
     end
+    
     @testset "Multiple Groups with Tooltips" begin
         df = create_example_dataframe()
         pd = plotdata(df, :X, :Y; groupfeature = :Group, text = df.Label)
@@ -34,4 +34,23 @@ end
             @test pd[2].text[2] == "D"
         end
     end
+end
+
+@testset "JSONText from PlotlyBase extension" begin
+    
+    using Stipple
+    @testset "Stipple.JSONText" begin
+        @test ! @isdefined PBPlotWithEvents
+        using PlotlyBase, PlotlyBase.JSON
+        @test @isdefined PBPlotWithEvents
+
+        sc = scatter(x = StipplePlotly.JSONText("jsontext"), more_of_this = "a")
+        pl = Plot(sc)
+        @test JSON.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}"
+        @test contains(JSON.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}")
+
+        @test Stipple.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}"
+        @test contains(Stipple.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}")
+    end
+
 end
