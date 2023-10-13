@@ -183,7 +183,7 @@ end
 ```
 """
 function watchplots(model::Union{Symbol, AbstractString} = "this"; observe = true, parentSelector::Union{Nothing, AbstractString} = nothing)
-  """watchPlots($model, $observe, $(isnothing(parentSelector) ? "''" : parentSelector))"""
+  """watchPlots($model, $observe, $(isnothing(parentSelector) ? "''" : parentSelector))\n"""
 end
 
 function watchplots(model::Union{M, Type{M}}; observe = true,
