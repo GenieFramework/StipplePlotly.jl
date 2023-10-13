@@ -58,6 +58,7 @@ const PLOT_TYPE_VOLUME = "volume"
 const PLOT_TYPE_ISOSURFACE = "isosurface"
 
 const DEFAULT_CONFIG_TYPE = Ref{DataType}()
+const PB_PKGID = Base.PkgId(Base.UUID("a03496cd-edff-5a9b-9e67-9cda94a718b5"), "PlotlyBase")
 
 kebapcase(s::String) = lowercase(replace(s, r"([A-Z])" => s"-\1"))
 kebapcase(s::Symbol) = Symbol(kebapcase(String(s)))
@@ -70,9 +71,9 @@ end
 
 function default_config_type()
   if DEFAULT_CONFIG_TYPE[] == Charts.PlotConfig
-    pkgid = Base.identify_package("PlotlyBase")
-    if haskey(Base.loaded_modules, pkgid)
-      DEFAULT_CONFIG_TYPE[] = Base.loaded_modules[pkgid].PlotConfig
+    pkg = get(Base.loaded_modules, PB_PKGID, nothing)
+    if pkg !== nothing
+        DEFAULT_CONFIG_TYPE[] = pkg.PlotConfig
     end
   end
   DEFAULT_CONFIG_TYPE[]
