@@ -46,11 +46,11 @@ end
 
         sc = scatter(x = StipplePlotly.JSONText("jsontext"), more_of_this = "a")
         pl = Plot(sc)
-        @test JSON.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}"
-        @test contains(JSON.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}")
+        @test JSON.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
+        @test contains(JSON.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}")
 
-        @test Stipple.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}"
-        @test contains(Stipple.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":\"jsontext\"}")
+        @test Stipple.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
+        @test contains(Stipple.json(pl), "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}")
     end
 
 end
