@@ -6,9 +6,6 @@ using StipplePlotly.Charts
 
 isdefined(Base, :get_extension) ? (using PlotlyBase) : (using ..PlotlyBase)
 
-Base.print(io::IO, a::Union{PlotlyBase.PlotConfig}) = print(io, Stipple.json(a))
-PlotlyBase.JSON.Writer.lower(json::Stipple.JSONText) = json.s
-
 function Base.Dict(p::PlotlyBase.Plot)
     Dict(
     :data => p.data,
