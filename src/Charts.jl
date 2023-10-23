@@ -56,6 +56,7 @@ const PLOT_TYPE_CONE = "cone"
 const PLOT_TYPE_STREAMTUBE = "streamtube"
 const PLOT_TYPE_VOLUME = "volume"
 const PLOT_TYPE_ISOSURFACE = "isosurface"
+const PLOT_TYPE_TIMELINE = "timeline"
 
 const DEFAULT_CONFIG_TYPE = Ref{DataType}()
 const PB_PKGID = Base.PkgId(Base.UUID("a03496cd-edff-5a9b-9e67-9cda94a718b5"), "PlotlyBase")
@@ -506,6 +507,8 @@ Base.@kwdef mutable struct PlotData
   width::Union{Int,Vector{Int},Nothing} = nothing
   # x::Union{Vector,Matrix,Nothing} = nothing
   x::Union{Vector,Nothing} = nothing
+  x_start::Union{Vector,Nothing} = nothing
+  x_end::Union{Vector,Nothing} = nothing
   x0::Union{Int,String,Nothing} = nothing
   xaxis::Union{String,Nothing} = nothing
   xbingroup::Union{String,Nothing} = nothing
@@ -677,7 +680,7 @@ function Base.Dict(pd::PlotData)
                         :uirevision, :upperfence, :unselected,
                         :values, :vertexcolor, :visible,
                         :whiskerwidth, :width,
-                        :x, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
+                        :x, :x_start, :x_end, :x0, :xaxis, :xbingroup, :xbins, :xcalendar, :xgap, :xperiod, :xperiodalignment, :xperiod0, :xtype,
                         :y, :y0, :yaxis, :ybingroup, :ybins, :ycalendar, :ygap, :yperiod, :yperiodalignment, :yperiod0, :ytype,
                         :z, :zauto, :zcalendar, :zhoverformat, :zmax, :zmid, :zmin, :zsmooth,
                         :geojson, :lat, :locations, :lon, :locationmode])
