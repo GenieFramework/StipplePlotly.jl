@@ -7,6 +7,7 @@ using StipplePlotly, StipplePlotly.Charts
 makedocs(
     sitename = "StipplePlotly - plotting library for Stipple",
     format = Documenter.HTML(prettyurls = false),
+    warnonly = true,
     pages = [
         "Home" => "index.md",
         "StipplePlotly API" => [
