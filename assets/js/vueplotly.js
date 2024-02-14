@@ -99,7 +99,7 @@ e)), {})
 , camelize = cached((e=>e.replace(regex, ((e,t)=>t ? t.toUpperCase() : ""))))
 , directives = {};
 "undefined" != typeof window && (directives.resize = Vueresize),
-Vue.component("plotly", {
+window.plotly = {plotly: {
   template: '<div :id="id" v-resize:debounce.100="onResize" ></div>',
   inheritAttrs: !1,
   directives: directives,
@@ -211,4 +211,4 @@ Vue.component("plotly", {
           Plotly.react(this.$el, this.data, this.innerLayout, this.config)
       }
   }
-});
+}};
