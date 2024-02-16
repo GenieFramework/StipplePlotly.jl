@@ -84,7 +84,7 @@ include("Layouts.jl")
 function __init__()
   deps_routes()
   Stipple.deps!(@__MODULE__, deps)
-  Stipple.register_global_components("plotly", legacy = true)
+  isdefined(Stipple, :register_global_components) && Stipple.register_global_components("plotly", legacy = true)
 
   @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
     @static if !isdefined(Base, :get_extension)
