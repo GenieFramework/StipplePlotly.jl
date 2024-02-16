@@ -63,7 +63,7 @@ end
 
 function deps() :: Vector{String}
   [
-    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly2.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="resizesensor.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="lodash.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")),
