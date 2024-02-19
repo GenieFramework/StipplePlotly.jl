@@ -16,9 +16,9 @@ _symbol_dict(d::AbstractDict) =
 function deps_routes() :: Nothing
   Genie.Assets.external_assets(Stipple.assets_config) && return nothing
 
-  Genie.Router.route(Genie.Assets.asset_route(assets_config, :js, file="plotly2.min"), named = :get_plotly2js) do
+  Genie.Router.route(Genie.Assets.asset_route(assets_config, :js, file="plotly.min"), named = :get_plotlyjs) do
     Genie.Renderer.WebRenderable(
-      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="plotly2.min.js")),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="plotly.min.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
