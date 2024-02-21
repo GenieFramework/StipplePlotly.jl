@@ -22,9 +22,9 @@ function deps_routes() :: Nothing
       :javascript) |> Genie.Renderer.respond
   end
 
-  Genie.Router.route(Genie.Assets.asset_route(assets_config, :js, file="resizesensor.min"), named = :get_resizesensorjs) do
+  Genie.Router.route(Genie.Assets.asset_route(assets_config, :js, file="ResizeSensor"), named = :get_resizesensorjs) do
     Genie.Renderer.WebRenderable(
-      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="resizesensor.min.js")),
+      Genie.Assets.embedded(Genie.Assets.asset_file(cwd=normpath(joinpath(@__DIR__, "..")), file="ResizeSensor.js")),
       :javascript) |> Genie.Renderer.respond
   end
 
@@ -64,7 +64,7 @@ end
 function deps() :: Vector{String}
   [
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="plotly.min")),
-    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="resizesensor.min")),
+    Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="ResizeSensor")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="lodash.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueresize.min")),
     Genie.Renderer.Html.script(src=Genie.Assets.asset_path(assets_config, :js, file="vueplotly.min")),
