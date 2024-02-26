@@ -11,7 +11,7 @@ Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
 DataFrames = "1"
-Genie = "5"
+Genie = "5.24.4"
 PlotlyBase = "0.8.19"
 Requires = "1"
 Stipple = "0.27.30, 0.28"
