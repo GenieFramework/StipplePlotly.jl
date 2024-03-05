@@ -646,7 +646,7 @@ function Base.show(io::IO, la::PlotLayoutAxis)
   print(io, output)
 end
 
-function Base.Dict(la::PlotLayoutAxis)
+function Base.Dict(la::PlotLayoutAxis, xy::String = "")
   trace = Dict{Symbol,Any}()
 
   if la.title_text !== nothing
@@ -666,8 +666,7 @@ function Base.Dict(la::PlotLayoutAxis)
     :tickcolor, :tickfont, :tickformat, :ticklabelmode, :ticklabelposition, :ticklen, :tickmode,
     :tickprefix, :ticks, :tickson, :ticksuffix, :ticktext, :tickvals, :tickwidth, :title, :type,
     :visible, :zeroline, :zerolinecolor, :zerolinewidth])
-
-  k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
+  k = Symbol(isempty(xy) ? la.xy : xy, "axis", la.index > 1 ? "$(la.index)" : "")
   Dict(k => d)
 end
 
@@ -1089,6 +1088,7 @@ Base.@kwdef mutable struct PlotLayout
   title::Union{PlotLayoutTitle,Nothing} = nothing
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
   yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
+  axes::Union{Vector{PlotLayoutAxis},Nothing} = nothing
 
   showlegend::Union{Bool,Nothing} = nothing # true
   legend::Union{PlotLayoutLegend,Nothing} = nothing
@@ -1231,13 +1231,19 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
 
 
   if pl.xaxis !== nothing
-    for d in Dict.(pl.xaxis)
-      merge!(layout, d)
+    for x in pl.xaxis
+      merge!(layout, Dict(x, "x"))
     end
   end
 
   if pl.yaxis !== nothing
-    for d in Dict.(pl.yaxis)
+    for y in pl.yaxis
+      merge!(layout, Dict(y, "y"))
+    end
+  end
+
+  if pl.axes !== nothing
+    for d in Dict.(pl.axes)
       merge!(layout, d)
     end
   end
