@@ -646,7 +646,7 @@ function Base.show(io::IO, la::PlotLayoutAxis)
   print(io, output)
 end
 
-function Base.Dict(la::PlotLayoutAxis)
+function Base.Dict(la::PlotLayoutAxis, xy::String = "")
   trace = Dict{Symbol,Any}()
 
   if la.title_text !== nothing
@@ -666,8 +666,7 @@ function Base.Dict(la::PlotLayoutAxis)
     :tickcolor, :tickfont, :tickformat, :ticklabelmode, :ticklabelposition, :ticklen, :tickmode,
     :tickprefix, :ticks, :tickson, :ticksuffix, :ticktext, :tickvals, :tickwidth, :title, :type,
     :visible, :zeroline, :zerolinecolor, :zerolinewidth])
-
-  k = Symbol(la.xy * "axis" * ((la.index > 1) ? "$(la.index)" : ""))
+  k = Symbol(isempty(xy) ? la.xy : xy, "axis", la.index > 1 ? "$(la.index)" : "")
   Dict(k => d)
 end
 
@@ -1233,15 +1232,13 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
 
   if pl.xaxis !== nothing
     for x in pl.xaxis
-      x.xy = "x"
-      merge!(layout, Dict(x))
+      merge!(layout, Dict(x, "x"))
     end
   end
 
   if pl.yaxis !== nothing
     for y in pl.yaxis
-      y.xy = "y"
-      merge!(layout, Dict(y))
+      merge!(layout, Dict(y, "y"))
     end
   end
 
