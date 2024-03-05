@@ -549,7 +549,7 @@ const CONFIG_MAPPINGS = Dict(
   :showlink => :showLink,
 )
 
-const CONGIG_DEFAULTS = Dict{Symbol, Any}(
+const CONFIG_DEFAULTS = Dict{Symbol, Any}(
   :scrollZoom => false,
   :staticPlot => false,
   :showLink => false,
@@ -792,32 +792,24 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     Symbol(jsonrender(layout))
   end
 
-  plotconfig = render(isnothing(config) ? configtype() : config)
-  plotconfig isa Union{Symbol,AbstractString,Nothing} || (configtype = typeof(plotconfig))
-
-  k = if plotconfig isa AbstractDict
-    collect(keys(plotconfig))
+  plotconfig = if config isa AbstractString
+    Symbol(config)
+  elseif config isa Symbol
+    config
   else
-    kk = collect(fieldnames(configtype))
-    if configtype == StipplePlotly.PlotConfig
-      # remove fields with underscore and add respective rendering field (StipplePlotly)
-      kk = kk[.! occursin.("_", string.(kk))]
-      push!(kk, :toImageButtonOptions)
+    # clean dict and default displaylogo to false
+    plotconfig = render(isnothing(config) ? configtype() : config)
+    if plotconfig isa AbstractDict
+      filter!(x -> x[2] ∉ (:null, nothing), plotconfig)
+      plotconfig = LittleDict{Symbol, Any}(replace(keys(plotconfig), CONFIG_MAPPINGS...) .=> values(plotconfig))
+      haskey(plotconfig, :displaylogo) || push!(plotconfig, :displaylogo => false)
+      plotconfig  = js_attr(plotconfig)
+    elseif hasproperty(plotconfig, :displaylogo) && plotconfig.displaylogo === nothing
+      plotconfig.displaylogo = false
     end
-    kk
+    plotconfig
   end
-  v = if plotconfig isa Union{AbstractString, Symbol}
-    config_defaults = jsonrender.(get.(Ref(CONGIG_DEFAULTS), replace(k, CONFIG_MAPPINGS...), ""))
-    v = Symbol.("typeof ", plotconfig, ".", string.(k), " == 'undefined' ? " , config_defaults, " : ", plotconfig, ".", string.(k))
-  else
-    v = plotconfig isa AbstractDict ? collect(values(plotconfig)) : Any[getfield(plotconfig, f) for f in k]
-    # force display of false value for displaylogo
-    n = findfirst(:displaylogo .== k)
-    isnothing(n) || v[n] != false || (v[n] = js"false")
-    v = Symbol.(jsonrender.(v))
-  end
-  pp = kebapcase.(replace(k, CONFIG_MAPPINGS...)) .=> v
-  plotconfig isa Union{Symbol,AbstractString} || filter!(x -> x[2] != :null, pp)
+
   if syncevents || ! isempty(syncprefix)
     if isempty(syncprefix)
       datastr = String(data)
@@ -829,7 +821,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   sync = Pair{Symbol, String}[]
   isempty(class) || push!(sync, :class => class)
 
-  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, kwargs..., pp..., sync...])...)
+  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, :config => plotconfig, kwargs..., sync...])...)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
