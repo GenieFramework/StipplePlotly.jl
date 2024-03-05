@@ -1089,6 +1089,7 @@ Base.@kwdef mutable struct PlotLayout
   title::Union{PlotLayoutTitle,Nothing} = nothing
   xaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
   yaxis::Union{Vector{PlotLayoutAxis},Nothing} = nothing
+  axes::Union{Vector{PlotLayoutAxis},Nothing} = nothing
 
   showlegend::Union{Bool,Nothing} = nothing # true
   legend::Union{PlotLayoutLegend,Nothing} = nothing
@@ -1231,13 +1232,21 @@ function Base.Dict(pl::PlotLayout, fieldname::Union{Symbol,Nothing} = nothing)
 
 
   if pl.xaxis !== nothing
-    for d in Dict.(pl.xaxis)
-      merge!(layout, d)
+    for x in pl.xaxis
+      x.xy = "x"
+      merge!(layout, Dict(x))
     end
   end
 
   if pl.yaxis !== nothing
-    for d in Dict.(pl.yaxis)
+    for y in pl.yaxis
+      y.xy = "y"
+      merge!(layout, Dict(y))
+    end
+  end
+
+  if pl.axes !== nothing
+    for d in Dict.(pl.axes)
       merge!(layout, d)
     end
   end
