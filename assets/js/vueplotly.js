@@ -100,7 +100,7 @@ e)), {})
 , directives = {};
 "undefined" != typeof window && (directives.resize = Vueresize),
 Vue.component("plotly", {
-  template: '<div :id="id" v-resize:debounce.100="onResize" ></div>',
+  template: '<div :id="id" v-resize:debounce.100="onResize" :class="$attrs.class" :style="$attrs.style"></div>',
   inheritAttrs: !1,
   directives: directives,
   props: {

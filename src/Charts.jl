@@ -751,30 +751,6 @@ end
 
 # =============
 
-function attributes(kwargs::Union{Vector{<:Pair}, Base.Iterators.Pairs, Dict},
-                    mappings::Dict{String,String} = Dict{String,String}())::NamedTuple
-
-  attrs = Pair{Symbol, Any}[]
-  mapped = false
-
-  for (k,v) in kwargs
-    v === nothing && continue
-    mapped = false
-
-    if haskey(mappings, string(k))
-      k = mappings[string(k)]
-    end
-
-    attr_key = string((isa(v, Symbol) && ! startswith(string(k), ":") &&
-      ! ( startswith(string(k), "v-") || startswith(string(k), "v" * Genie.config.html_parser_char_dash) ) ? ":" : ""), "$k") |> Symbol
-    attr_val = isa(v, Symbol) && ! startswith(string(k), ":") ? Stipple.julia_to_vue(v) : v
-
-    push!(attrs, attr_key => attr_val)
-  end
-
-  NamedTuple(attrs)
-end
-
 function jsonrender(x)
   replace(json(render(x)), "'" => raw"\'", '"' => ''')
 end
@@ -814,14 +790,14 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     if isempty(syncprefix)
       datastr = String(data)
       syncprefix = endswith(datastr, "data") && length(datastr) > 4 ? datastr[1:end-4] : datastr
-      syncprefix = split(syncprefix, ['_', '.'])[1]
+      syncprefix = join(split(syncprefix, ['_', '.'])[1:end-1], '_')
     end
     class = isempty(class) ? "sync_$syncprefix" : "sync_$syncprefix $class"
   end
   sync = Pair{Symbol, String}[]
   isempty(class) || push!(sync, :class => class)
 
-  plotly("", args...; attributes([:data => Symbol(data), :layout => plotlayout, :config => plotconfig, kwargs..., sync...])...)
+  plotly("", args...; Stipple.attributes([:layout => plotlayout, :data => Symbol(data), :config => plotconfig, kwargs..., sync...])...)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
