@@ -3,6 +3,7 @@ module StipplePlotlyPlotlyBaseExt
 using StipplePlotly
 using StipplePlotly.Stipple
 using StipplePlotly.Charts
+import Stipple.stipple_parse
 
 isdefined(Base, :get_extension) ? (using PlotlyBase) : (using ..PlotlyBase)
 
@@ -25,8 +26,16 @@ function PlotlyBase.Plot(d::AbstractDict)
     PlotlyBase.Plot(data, layout, frames; config)
 end
 
-function stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict)
+function Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict)
     PlotlyBase.Plot(d)
+end
+
+function Stipple.stipple_parse(::Type{T}, d::AbstractDict) where T <: PlotlyBase.AbstractTrace
+    T(d)
+end
+
+function Stipple.stipple_parse(::Type{PlotlyBase.Layout}, d::AbstractDict)
+    PlotlyBase.Layout(d)
 end
 
 end
