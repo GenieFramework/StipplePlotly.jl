@@ -1,7 +1,7 @@
 name = "StipplePlotly"
 uuid = "ec984513-233d-481d-95b0-a3b58b97af2b"
 authors = ["Adrian <e@essenciary.com> and contributors"]
-version = "0.14.0"
+version = "0.14.1"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
