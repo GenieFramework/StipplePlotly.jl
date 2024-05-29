@@ -1,6 +1,5 @@
 @testset "PlotlyBase extension" begin
-    
-    using Stipple
+
     @testset "Stipple.JSONText" begin
         @test ! @isdefined(PBPlotWithEvents) || @isdefined(PlotlyBase)
         using PlotlyBase, PlotlyBase.JSON
@@ -29,7 +28,7 @@
             pl_in = stipple_parse(PlotlyBase.Layout{Dict{Symbol, Any}}, pl_d)
             pl_in[:xaxis_range] == [1, 2]
 
-            if VersionNumber(Genie.Assets.package_version(Stipple)) >= v"0.30.5"
+            @static if VersionNumber(Genie.Assets.package_version(Stipple)) >= v"0.30.5"
                 pl_in = stipple_parse(PlotlyBase.Layout{OrderedDict{Symbol, Any}}, pl_d)
                 @test pl_in[:xaxis_range] == [1, 2]
             end

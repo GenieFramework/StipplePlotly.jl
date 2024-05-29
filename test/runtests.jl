@@ -1,4 +1,5 @@
 using StipplePlotly
+using Stipple
 using Test
 using DataFrames
 
