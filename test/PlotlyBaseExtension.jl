@@ -28,7 +28,7 @@
             pl_in = stipple_parse(PlotlyBase.Layout{Dict{Symbol, Any}}, pl_d)
             pl_in[:xaxis_range] == [1, 2]
 
-            @static if VersionNumber(Genie.Assets.package_version(Stipple)) >= v"0.30.5"
+            @static if VersionNumber(Genie.Assets.package_version(Stipple)) >= v"0.30.6"
                 pl_in = stipple_parse(PlotlyBase.Layout{OrderedDict{Symbol, Any}}, pl_d)
                 @test pl_in[:xaxis_range] == [1, 2]
             end
@@ -51,9 +51,9 @@
             @test length(pl_in.data) == 1
             @test pl_in.layout[:xaxis_range] == [1, 2]
 
-            T = Plot() |> typeof
-            T = Plot
-            pl_in = stipple_parse(T, pl_d)
+            PlotType = typeof(Plot())
+            pl_in = stipple_parse(PlotType, pl_d)
+            
             @test length(pl_in.data) == 1
             @test pl_in.data[1][:x] == [1, 2, 3]
             @test pl_in.layout[:xaxis_range] == [1, 2]
