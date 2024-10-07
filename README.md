@@ -51,7 +51,7 @@ end
 #     @in plot_cursor = Dict{String, Any}()
 # end
 
-Stipple.js_mounted(::Example) = watchplots()
+@mounted Example watchplots()
 
 # the keyword argument 'keepselection' (default = false) controls whether the selection outline shall be removed after selection
 function ui()
