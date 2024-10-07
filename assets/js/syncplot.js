@@ -42,8 +42,8 @@ function watchGraphDiv(gd, model, prefix) {
         }
         return cursor
     }
-
-    console.info('Syncing plot of class \'' + gd.className + '\' to ' + model.$el.id + '.' + prefix)
+    var id = model.$el.id || model.$el.parentElement.id // Vue-2 / Vue-3 compatibility
+    console.info('Syncing plot of class \'' + gd.className + '\' to ' + id + '.' + prefix)
     gd.on("plotly_selected", function (data) {
         var filteredEventData = filterEventData(gd, data, 'selected')
         if (!filteredEventData.isNil) { model[prefix + '_selected'] = filteredEventData.out }
