@@ -2,10 +2,7 @@
 
 Embedding Plotly Charts in Stipple.
 
-### News: Syntax for event forwarding has changed!
-
-The standard API is now PlotlyBase, the StipplePlotly API is considered legacy.
-
+### News: The standard API is now PlotlyBase, the StipplePlotly API is considered legacy.
 ### Example with forwarding of plotly events
 
 See the docstrings of `watchplots()` and `watchplot()` for more details!
