@@ -3,9 +3,11 @@
 Embedding Plotly Charts in Stipple.
 
 ### News: Syntax for event forwarding has changed!
+
 The standard API is now PlotlyBase, the StipplePlotly API is considered legacy.
 
 ### Example with forwarding of plotly events
+
 See the docstrings of `watchplots()` and `watchplot()` for more details!
 
 ```julia
@@ -56,14 +58,16 @@ Stipple.js_mounted(::Example) = watchplots()
 
 # the keyword argument 'keepselection' (default = false) controls whether the selection outline shall be removed after selection
 function ui()
-    row(class = "st-module", [
+    cell(class = "st-module", [
         plotly(:plot, syncevents = true, keepselection = false),
     ])
 end
 
 @page("/", ui, model = Example)
 ```
+
 Possible forwarded events are
+
 - '_selected' (Selection changed)
 - '_hover' (hovered over data point)
 - '_click' (click event on plot area)
@@ -73,4 +77,5 @@ Possible forwarded events are
 For more Stipple Plotly Demos please check: [Stipple Demos Repo](https://github.com/GenieFramework/StippleDemos)
 
 ## Acknowledgement
+
 Handling of Plotly Events was highly inspired by the [PlotlyJS](https://github.com/JuliaPlots/PlotlyJS.jl) package by [Spencer Lyon](https://github.com/sglyon)
