@@ -81,7 +81,7 @@ function default_config_type()
 end
 
 """
-    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), kwargs...)
+    function plotly(p::Symbol; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), keepselection = false, kwargs...)
 
 This is a convenience function for rendering a PlotlyBase.Plot or a struct with fields data, layout and config
 # Example
@@ -96,8 +96,8 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), kwargs...)
-  plot("$p.data", args...; layout, config, configtype, kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), keepselection = false, kwargs...)
+  plot("$p.data", args...; layout, config, configtype, keepselection, kwargs...)
 end
 
 """
@@ -758,7 +758,7 @@ end
 function plot(data::Union{Symbol,AbstractString}, args...;
   layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
-  syncevents::Bool = false, syncprefix = "", class = "", kwargs...) :: String  where {LayoutType, ConfigType}
+  syncevents::Bool = false, syncprefix = "", class = "", keepselection = false, kwargs...) :: String  where {LayoutType, ConfigType}
 
   plotlayout = if layout isa AbstractString
     Symbol(layout)
@@ -797,7 +797,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   sync = Pair{Symbol, String}[]
   isempty(class) || push!(sync, :class => class)
 
-  plotly("", args...; Stipple.attributes([:layout => plotlayout, :data => Symbol(data), :config => plotconfig, kwargs..., sync...])...)
+  plotly("", args...; Stipple.attributes([:layout => plotlayout, :data => Symbol(data), :config => plotconfig, :keepselection => keepselection, kwargs..., sync...])...)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
