@@ -47,6 +47,12 @@ function watchGraphDiv(gd, model, prefix) {
     gd.on("plotly_selected", function (data) {
         var filteredEventData = filterEventData(gd, data, 'selected')
         if (!filteredEventData.isNil) { model[prefix + '_selected'] = filteredEventData.out }
+        if (!gd.classList.contains('keep_selection')) {
+            setTimeout(() => {
+                gd.querySelector('.outline-controllers')?.remove()
+                gd.querySelector('.selectionlayer')?.replaceChildren()
+            }, 100)
+        }
     })
 
     gd.on("plotly_deselect", function () {
