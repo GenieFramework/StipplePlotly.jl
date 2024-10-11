@@ -14,20 +14,20 @@ else
 end
 
 function Stipple.render(pl::Plots.Plot)
-    pl = Plots.plotlybase_syncplot(pl)
-    delete!(pl.layout.fields, :height)
-    delete!(pl.layout.fields, :width)
+    # make sure the PlotlyBase backend is loaded and that the current backend is not changed
+    already_initialized = true
+    if !isdefined(Plots, :plotlybase_syncplot)
+        current_backend = Plots.backend()
+        Plots.plotly() === current_backend || Plots.backend(current_backend)
+        already_initialized = false
+    end
+
+    pl = already_initialized ? Plots.plotlybase_syncplot(pl) : Base.invokelatest(Plots.plotlybase_syncplot, pl)
+    pop!(pl.layout, :height)
+    pop!(pl.layout, :width)
     pl.layout.fields[:margin] = Dict(:l => 50, :b => 50, :r => 50, :t => 60)
 
     return pl
-end
-
-function __init__()
-    current_backend = Plots.backend()
-    if current_backend !== :plotly
-        Plots.plotly()
-        Plots.backend(current_backend)
-    end
 end
 
 end
