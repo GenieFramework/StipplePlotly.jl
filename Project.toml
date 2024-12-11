@@ -1,7 +1,7 @@
 name = "StipplePlotly"
 uuid = "ec984513-233d-481d-95b0-a3b58b97af2b"
 authors = ["Adrian <e@essenciary.com> and contributors"]
-version = "0.14.5"
+version = "0.15"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -11,11 +11,11 @@ Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
 [compat]
 DataFrames = "1"
-Genie = "5.24.4"
+Genie = "5.32"
 PlotlyBase = "0.8.19"
 Plots = "1.4"
 Requires = "1"
-Stipple = "0.29, 0.30"
+Stipple = "0.31"
 julia = "1.6"
 
 [extras]
