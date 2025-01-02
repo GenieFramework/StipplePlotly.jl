@@ -56,4 +56,10 @@ function Stipple.stipple_parse(::Type{PlotlyBase.Layout{D}}, d::AbstractDict) wh
     PlotlyBase.Layout(stipple_parse(D, PlotlyBase._symbol_dict(d)))
 end
 
+# to support array types where special jsrender methods are defined, e.g. TypedArrays
+function Stipple.jsrender(t::Union{PlotlyBase.HasFields, PlotlyBase.Plot}, field::Symbol = :plot)
+    d = Dict(t)
+    Dict(keys(d) .=> [v isa AbstractVector ? Stipple.jsrender.(v) : Stipple.jsrender(v) for v in values(d)])
+end
+
 end
