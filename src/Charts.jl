@@ -860,7 +860,7 @@ end
 
 # Parsers
 
-function stipple_parse(::Type{PlotData}, d::Dict{String, Any})
+function stipple_parse(::Type{PlotData}, d::AbstractDict{String, Any})
   sd = symbol_dict(d)
   haskey(sd, :text) && (sd[:text] isa String || (sd[:text] = Vector{String}(sd[:text])))
   haskey(sd, :selectedpoints) && (sd[:selectedpoints] = [sd[:selectedpoints]...])
@@ -873,15 +873,15 @@ end
 function stipple_parse(::Type{Vector{<:PlotData}}, dd::Vector)
     PlotData[stipple_parse(PlotData, d) for d in dd]
 end
-function stipple_parse(::Type{T}, d::Dict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+function stipple_parse(::Type{T}, d::AbstractDict{Symbol, Any}) where T <: Union{Font, PlotLayout, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
   typify(T, d)
 end
 
-function stipple_parse(::Type{T}, d::Dict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
+function stipple_parse(::Type{T}, d::AbstractDict{String, Any}) where T <: Union{Font, PlotLayoutAxis, PlotLayoutGeo, PlotLayoutGrid, PlotLayoutLegend, PlotLayoutMapbox, PlotLayoutTitle}
   stipple_parse(T, symbol_dict(d))
 end
 
-function stipple_parse(::Type{PlotLayout}, d::Dict{String, Any})
+function stipple_parse(::Type{PlotLayout}, d::AbstractDict{String, Any})
   d = symbol_dict(d)
 
   haskey(d, :title) && (d[:title] = d[:title] isa String ? PlotLayoutTitle(; text = d[a][:title]) : PlotLayoutTitle(; d[a][:title]...))
@@ -915,7 +915,7 @@ pl = PlotLayout(
     margin_t = 20
 )
 
-d = JSON3.read(json(render(pl)), Dict{String, Any})
+d = JSON.parse(json(render(pl)), Dict{String, Any})
 stipple_parse(PlotLayout, d)
 =#
 
