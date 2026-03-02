@@ -19,7 +19,8 @@ function deps_routes() :: Nothing
   Genie.Assets.external_assets(Stipple.assets_config) && return nothing
   
   basedir = dirname(@__DIR__)
-  add_fileroute(assets_config, "plotly.min.js"; basedir, named = :get_plotlyjs) 
+  plotly_asset = get(ENV, "STIPPLE_PLOTLY_VERSION", "3") === "3" ? "plotly-3.min.js" : "plotly.min.js"
+  add_fileroute(assets_config, plotly_asset; basedir, named = :get_plotlyjs) 
   add_fileroute(assets_config, "ResizeSensor.js"; basedir, named = :get_resizesensorjs) 
   add_fileroute(assets_config, "lodash.min.js"; basedir, named = :get_lodashjs) 
   add_fileroute(assets_config, "vueresize.min.js"; basedir, named = :get_vueresizejs)
@@ -31,8 +32,9 @@ function deps_routes() :: Nothing
 end
 
 function deps() :: Vector{String}
+  plotly_asset = get(ENV, "STIPPLE_PLOTLY_VERSION", "2") === "3" ? "plotly-3.min" : "plotly.min"
   [
-    script(src = asset_path(assets_config, :js, file="plotly.min")),
+    script(src = asset_path(assets_config, :js, file=plotly_asset)),
     script(src = asset_path(assets_config, :js, file="ResizeSensor")),
     script(src = asset_path(assets_config, :js, file="lodash.min")),
     script(src = asset_path(assets_config, :js, file="vueresize.min")),
