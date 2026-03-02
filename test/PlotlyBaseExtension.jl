@@ -20,7 +20,7 @@
 
         @testset "Layout" begin
             pl = PlotlyBase.Layout(xaxis_range = [1, 2])
-            pl_d = JSON3.read(Stipple.json(render(pl)), Dict)
+            pl_d = JSON.parse(Stipple.json(render(pl)), Dict)
 
             pl_in = stipple_parse(PlotlyBase.Layout, pl_d)
             @test pl_in[:xaxis_range] == [1, 2]
@@ -36,7 +36,7 @@
 
         @testset "GenericTrace" begin
             tr = scatter(x = [1, 2, 3], y = [3, 4, 5])
-            tr_d = JSON3.read(Stipple.json(render(tr)), Dict)
+            tr_d = JSON.parse(Stipple.json(render(tr)), Dict)
 
             tr_in = stipple_parse(GenericTrace, tr_d)
             @test tr_in.x == [1, 2, 3]
@@ -45,7 +45,7 @@
 
         @testset "Plot" begin
             pl = PlotlyBase.Plot([scatter(x = [1, 2, 3], y = [3, 4, 5])], PlotlyBase.Layout(xaxis_range = [1, 2]))
-            pl_d = JSON3.read(Stipple.json(render(pl)), Dict)
+            pl_d = JSON.parse(Stipple.json(render(pl)), Dict)
 
             pl_in = stipple_parse(PlotlyBase.Plot, pl_d)
             @test length(pl_in.data) == 1
