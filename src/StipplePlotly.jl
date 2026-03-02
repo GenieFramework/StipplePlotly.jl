@@ -50,31 +50,19 @@ include("Charts.jl")
 include("Layouts.jl")
 @reexport using .Layouts
 
+export PBPlotWithEvents, PBPlotWithEventsReadOnly
+
+abstract type PBPlotWithEvents end
+abstract type PBPlotWithEventsReadOnly end
+
 function __init__()
   deps_routes()
   Stipple.deps!(@__MODULE__, deps)
   isdefined(Stipple, :register_global_components) && Stipple.register_global_components("plotly", legacy = true)
 
-  @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
-    @static if !isdefined(Base, :get_extension)
+  @static if !isdefined(Base, :get_extension)
+    @require PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5" begin
       include("../ext/StipplePlotlyPlotlyBaseExt.jl")
-    end
-
-    export PBPlotWithEvents, PBPlotWithEventsReadOnly
-    Base.@kwdef struct PBPlotWithEvents
-      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot()
-      _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-    end
-
-    Base.@kwdef struct PBPlotWithEventsReadOnly
-      var""::R{PlotlyBase.Plot} = PlotlyBase.Plot(), READONLY
-      _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
-      _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
     end
   end
 end

@@ -62,4 +62,23 @@ function Stipple.jsrender(t::Union{PlotlyBase.HasFields, PlotlyBase.Plot}, field
     Dict(keys(d) .=> [v isa AbstractVector ? Stipple.jsrender.(v) : Stipple.jsrender(v) for v in values(d)])
 end
 
+Base.@kwdef struct PBPlotWithEvents <: StipplePlotly.PBPlotWithEvents
+    var""::R{PlotlyBase.Plot} = PlotlyBase.Plot()
+    _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+end
+
+Base.@kwdef struct PBPlotWithEventsReadOnly <: StipplePlotly.PBPlotWithEventsReadOnly
+    var""::R{PlotlyBase.Plot} = PlotlyBase.Plot(), READONLY
+    _selected::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _hover::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _click::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+    _relayout::R{Charts.PlotlyEvent} = Charts.PlotlyEvent()
+end
+
+StipplePlotly.PBPlotWithEvents(args...; kwargs...) = PBPlotWithEvents(args...; kwargs...)
+StipplePlotly.PBPlotWithEventsReadOnly(args...; kwargs...) = PBPlotWithEventsReadOnly(args...; kwargs...)
+
 end
