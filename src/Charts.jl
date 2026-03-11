@@ -815,7 +815,7 @@ function plot(data::Union{Symbol,AbstractString}, args...;
     if isempty(syncprefix)
       datastr = String(data)
       syncprefix = endswith(datastr, "data") && length(datastr) > 4 ? datastr[1:end-4] : datastr
-      syncprefix = join(split(syncprefix, ['_', '.'])[1:end-1], '_')
+      syncprefix = rstrip(replace(syncprefix, '.' => '_'), '_')
     end
     class = isempty(class) ? "sync_$syncprefix" : "sync_$syncprefix $class"
   end
