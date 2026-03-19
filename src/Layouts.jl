@@ -53,7 +53,7 @@ end
 
 Base.:(==)(x::Font, y::Font) = x.family == y.family && x.size == y.size && x.color == y.color
 
-Base.hash(f::Font) = hash("$(f.family)$(f.size)$(f.color)")
+Base.hash(f::Font, h::UInt) = hash("$(f.family)$(f.size)$(f.color)", h)
 
 Base.@kwdef mutable struct Protation
   lon::Union{Float64, Int64} = -234
