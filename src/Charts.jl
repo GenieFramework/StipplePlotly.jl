@@ -96,8 +96,8 @@ julia> plotly(:plot, config = :config)
 ```
 
 """
-function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), configtype = default_config_type(), keepselection = false, kwargs...)
-  plot("$p.data", args...; layout, config, configtype, keepselection, kwargs...)
+function plotly(p::Symbol, args...; layout = Symbol(p, ".layout"), config = Symbol(p, ".config"), frames = Symbol(p, ".frames"), configtype = default_config_type(), keepselection = false, kwargs...)
+  plot("$p.data", args...; layout, config, frames, configtype, keepselection, kwargs...)
 end
 
 """
@@ -782,6 +782,7 @@ An example of event forwarding can be found in the docstring of StipplePlotly.
 function plot(data::Union{Symbol,AbstractString}, args...;
   layout::Union{Symbol,AbstractString,LayoutType} = Charts.PlotLayout(),
   config::Union{Symbol,AbstractString,Nothing,ConfigType} = nothing, configtype = Charts.PlotConfig,
+  frames::Union{Symbol,AbstractString,Nothing} = nothing,
   keepselection::Bool = false,
   syncevents::Bool = false, syncprefix = "", class = "", kwargs...) :: String  where {LayoutType, ConfigType}
 
@@ -822,7 +823,8 @@ function plot(data::Union{Symbol,AbstractString}, args...;
   sync = Pair{Symbol, String}[]
   isempty(class) || push!(sync, :class => class)
 
-  plotly("", args...; Stipple.attributes([:layout => plotlayout, :data => Symbol(data), :config => plotconfig, :keepselection => keepselection, kwargs..., sync...])...)
+  frames_attr = isnothing(frames) ? Pair{Symbol,Any}[] : Pair{Symbol,Any}[:frames => Symbol(frames)]
+  plotly("", args...; Stipple.attributes([:layout => plotlayout, :data => Symbol(data), :config => plotconfig, :keepselection => keepselection, frames_attr..., kwargs..., sync...])...)
 end
 
 Base.print(io::IO, a::Union{PlotLayout, PlotConfig}) = print(io, Stipple.json(a))
