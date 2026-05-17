@@ -8,8 +8,14 @@
     @testset "JSONText" begin
         sc = scatter(x = StipplePlotly.JSONText("jsontext"), more_of_this = "a")
         pl = Plot(sc)
-        if VERSION ≥ v"1.9-"
-            @test JSON.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
+        if pkgversion(JSON) ≥ v"1"
+            test_string = if pkgversion(JSON) ≥ v"1.5"
+                # JSON version 1.5 and higher sorts keys in Dicts, if sort_keys is not set to false
+                "{\"more\":{\"of\":{\"this\":\"a\"}},\"type\":\"scatter\",\"x\":jsontext}"
+            else
+                "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
+            end
+            @test JSON.json(sc) == test_string
         else
             # JSON version v0.21, which is the only one compatible with julia < v1.9, reparses JSONText, which fails for invalid JSON objects
             pl.data[1].x = JSONText("123")
