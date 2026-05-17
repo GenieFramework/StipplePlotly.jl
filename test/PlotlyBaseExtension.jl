@@ -8,12 +8,13 @@
     @testset "JSONText" begin
         sc = scatter(x = StipplePlotly.JSONText("jsontext"), more_of_this = "a")
         pl = Plot(sc)
-        if pkgversion(JSON) ≥ v"1"
-            test_string = if pkgversion(JSON) ≥ v"1.5"
+        # pkgversion is only defined after VERSION >= v"1.9-", but below 1.9, the only compatible JSON version is v0.21
+        if VERSION ≥ v"1.9-" && pkgversion(JSON) ≥ v"1-"
+            test_string = if pkgversion(JSON) < v"1.5-"
+                "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
+            else
                 # JSON version 1.5 and higher sorts keys in Dicts, if sort_keys is not set to false
                 "{\"more\":{\"of\":{\"this\":\"a\"}},\"type\":\"scatter\",\"x\":jsontext}"
-            else
-                "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
             end
             @test JSON.json(sc) == test_string
         else
