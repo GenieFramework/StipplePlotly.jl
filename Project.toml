@@ -1,21 +1,29 @@
 name = "StipplePlotly"
 uuid = "ec984513-233d-481d-95b0-a3b58b97af2b"
+version = "0.14.13"
 authors = ["Adrian <e@essenciary.com> and contributors"]
-version = "0.14.12"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-Genie = "c43c736e-a2d1-11e8-161f-af95117fbd1e"
+OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Stipple = "4acbeb90-81a0-11ea-1966-bdaff8155998"
 
+[weakdeps]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+
+[extensions]
+StipplePlotlyPlotlyBaseExt = "PlotlyBase"
+StipplePlotlyPlotsExt = ["Plots", "PlotlyBase"]
+
 [compat]
 DataFrames = "1"
-Genie = "5.24.4"
+OrderedCollections = "1"
 PlotlyBase = "0.8.19"
 Plots = "1.4"
 Requires = "1"
-Stipple = "0.29, 0.30, 0.31"
+Stipple = "0.28 - 0.31, 1"
 julia = "1.6"
 
 [extras]
@@ -23,13 +31,5 @@ PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[extensions]
-StipplePlotlyPlotlyBaseExt = "PlotlyBase"
-StipplePlotlyPlotsExt = ["Plots", "PlotlyBase"]
-
 [targets]
 test = ["Test", "PlotlyBase"]
-
-[weakdeps]
-PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"

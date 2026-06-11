@@ -17,7 +17,7 @@ function Base.Dict(p::PlotlyBase.Plot)
 end
 
 function PlotlyBase.Plot(d::AbstractDict)
-    sd = PlotlyBase._symbol_dict(d)
+    sd = StipplePlotly._symbol_dict(d)
     data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
     layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
     frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
@@ -41,19 +41,20 @@ function Stipple.stipple_parse(::Type{Plot{TT, TL, TF}}, d::AbstractDict) where 
 end
 
 function Stipple.stipple_parse(::Type{T}, d::AbstractDict) where T <: PlotlyBase.AbstractTrace
-    T === PlotlyBase.AbstractTrace ? GenericTrace(d) : T(d)
+    sd = StipplePlotly._symbol_dict(d)
+    T === PlotlyBase.AbstractTrace ? GenericTrace(sd) : T(sd)
 end
 
 function Stipple.stipple_parse(T::Type{PlotlyBase.GenericTrace{D}}, d::AbstractDict) where D <: AbstractDict
-    T(stipple_parse(D, PlotlyBase._symbol_dict(d)))
+    T(stipple_parse(D, StipplePlotly._symbol_dict(d)))
 end
 
 function Stipple.stipple_parse(::Type{PlotlyBase.Layout}, d::AbstractDict)
-    PlotlyBase.Layout(d)
+    PlotlyBase.Layout(StipplePlotly._symbol_dict(d))
 end
 
 function Stipple.stipple_parse(::Type{PlotlyBase.Layout{D}}, d::AbstractDict) where D
-    PlotlyBase.Layout(stipple_parse(D, PlotlyBase._symbol_dict(d)))
+    PlotlyBase.Layout(stipple_parse(D, StipplePlotly._symbol_dict(d)))
 end
 
 # to support array types where special jsrender methods are defined, e.g. TypedArrays

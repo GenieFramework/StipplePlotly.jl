@@ -1,8 +1,9 @@
 module Charts
 
-using Genie, Stipple, StipplePlotly
+using Stipple, StipplePlotly
 using Stipple.Reexport, Stipple.ParsingTools
 import Stipple: stipple_parse
+using Stipple.Genie
 
 import StipplePlotly._symbol_dict
 import DataFrames
@@ -16,7 +17,7 @@ using .Layouts
 
 using .Layouts:optionals!
 
-import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
+import Stipple.Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 
 export PlotLayout, PlotData, PlotAnnotation, Trace, plot, ErrorBar, Font, ColorBar, watchplot, watchplots
 export PlotLayoutGrid, PlotLayoutAxis

@@ -1,7 +1,9 @@
 module Layouts
 
-using Genie, Stipple, StipplePlotly
-import Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
+using Stipple, StipplePlotly
+using Stipple.Genie
+
+import Stipple.Genie.Renderer.Html: HTMLString, normal_element, register_normal_element
 using Requires
 
 const LAYOUT_TITLE_REF_CONTAINER = "container"

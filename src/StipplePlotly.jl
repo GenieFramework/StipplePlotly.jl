@@ -1,22 +1,23 @@
 module StipplePlotly
 
-using Genie, Stipple, Stipple.Reexport, Stipple.ParsingTools
+using Stipple, Stipple.Genie, Stipple.Reexport, Stipple.ParsingTools
 using Requires
+using OrderedCollections
 
-import Genie: Assets.add_fileroute, Assets.asset_path
+import Stipple.Genie: Assets.add_fileroute, Assets.asset_path
 
 #===#
 
-const assets_config = Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
+const assets_config = Stipple.Genie.Assets.AssetsConfig(package = "StipplePlotly.jl")
 
 _symbol_dict(x) = x
 _symbol_dict(d::AbstractDict) =
-    Dict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
+    OrderedDict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
 #===#
 
 function deps_routes() :: Nothing
-  Genie.Assets.external_assets(Stipple.assets_config) && return nothing
+  Stipple.Genie.Assets.external_assets(Stipple.assets_config) && return nothing
   
   basedir = dirname(@__DIR__)
   plotly_asset = get(ENV, "STIPPLE_PLOTLY_VERSION", "2") === "3" ? "plotly-3.min.js" : "plotly.min.js"

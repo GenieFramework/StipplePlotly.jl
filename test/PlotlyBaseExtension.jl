@@ -1,7 +1,7 @@
 @testset "PlotlyBase extension" begin
+    using PlotlyBase, PlotlyBase.JSON
     @testset "Loading" begin
         @test length(methods(PBPlotWithEvents)) == 0 || @isdefined(PlotlyBase)
-        using PlotlyBase, PlotlyBase.JSON
         @test @isdefined PBPlotWithEvents
     end
 
