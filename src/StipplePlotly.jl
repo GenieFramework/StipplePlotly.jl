@@ -2,7 +2,7 @@ module StipplePlotly
 
 using Stipple, Stipple.Genie, Stipple.Reexport, Stipple.ParsingTools
 using Requires
-using PlotlyBase: JSON
+using JSON
 
 import Stipple.Genie: Assets.add_fileroute, Assets.asset_path
 
