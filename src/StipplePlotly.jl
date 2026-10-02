@@ -16,11 +16,15 @@ _symbol_dict(d::AbstractDict) =
 
 #===#
 
+const PLOTLY_ASSET_VERSIONS = Dict("2" => "plotly", "3" => "plotly-3", "4" => "plotly-4")
+
+plotly_asset_basename() = get(PLOTLY_ASSET_VERSIONS, get(ENV, "STIPPLE_PLOTLY_VERSION", "4"), "plotly")
+
 function deps_routes() :: Nothing
   Stipple.Genie.Assets.external_assets(Stipple.assets_config) && return nothing
   
   basedir = dirname(@__DIR__)
-  plotly_asset = get(ENV, "STIPPLE_PLOTLY_VERSION", "2") === "3" ? "plotly-3.min.js" : "plotly.min.js"
+  plotly_asset = plotly_asset_basename() * ".min.js"
   add_fileroute(assets_config, plotly_asset; basedir, named = :get_plotlyjs) 
   add_fileroute(assets_config, "ResizeSensor.js"; basedir, named = :get_resizesensorjs) 
   add_fileroute(assets_config, "lodash.min.js"; basedir, named = :get_lodashjs) 
@@ -33,7 +37,7 @@ function deps_routes() :: Nothing
 end
 
 function deps() :: Vector{String}
-  plotly_asset = get(ENV, "STIPPLE_PLOTLY_VERSION", "2") === "3" ? "plotly-3.min" : "plotly.min"
+  plotly_asset = plotly_asset_basename() * ".min"
   [
     script(src = asset_path(assets_config, :js, file=plotly_asset)),
     script(src = asset_path(assets_config, :js, file="ResizeSensor")),
