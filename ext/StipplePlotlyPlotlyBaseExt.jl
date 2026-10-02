@@ -16,16 +16,6 @@ function Base.Dict(p::PlotlyBase.Plot)
     )
 end
 
-function PlotlyBase.Plot(d::AbstractDict)
-    sd = StipplePlotly._symbol_dict(d)
-    data = haskey(sd, :data) && ! isempty(sd[:data]) ? PlotlyBase.GenericTrace.(sd[:data]) : PlotlyBase.GenericTrace[]
-    layout = haskey(sd, :layout) ? PlotlyBase.Layout(sd[:layout]) : PlotlyBase.Layout()
-    frames = haskey(sd, :frames) && ! isempty(sd[:frames]) ? PlotlyBase.PlotlyFrame.(sd[:frames]) : PlotlyBase.PlotlyFrame[]
-    config = haskey(sd, :config) ? PlotlyBase.PlotConfig(; sd[:config]...) : PlotlyBase.PlotConfig()
-
-    PlotlyBase.Plot(data, layout, frames; config)
-end
-
 function Stipple.stipple_parse(::Type{PlotlyBase.Plot}, d::AbstractDict)
     PlotlyBase.Plot(d)
 end

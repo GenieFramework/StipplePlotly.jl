@@ -18,7 +18,7 @@ StipplePlotlyPlotsExt = ["Plots", "PlotlyBase"]
 
 [compat]
 DataFrames = "1"
-PlotlyBase = "0.9"
+PlotlyBase = "0.9.1"
 Plots = "1.4"
 Requires = "1"
 Stipple = "0.28 - 0.31, 1"
