@@ -8,20 +8,9 @@
     @testset "JSONText" begin
         sc = scatter(x = StipplePlotly.JSONText("jsontext"), more_of_this = "a")
         pl = Plot(sc)
-        # pkgversion is only defined after VERSION >= v"1.9-", but below 1.9, the only compatible JSON version is v0.21
-        if VERSION ≥ v"1.9-" && pkgversion(JSON) ≥ v"1-"
-            test_string = if pkgversion(JSON) < v"1.5-"
-                "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":jsontext}"
-            else
-                # JSON version 1.5 and higher sorts keys in Dicts, if sort_keys is not set to false
-                "{\"more\":{\"of\":{\"this\":\"a\"}},\"type\":\"scatter\",\"x\":jsontext}"
-            end
-            @test JSON.json(sc) == test_string
-        else
-            # JSON version v0.21, which is the only one compatible with julia < v1.9, reparses JSONText, which fails for invalid JSON objects
-            pl.data[1].x = JSONText("123")
-            @test JSON.json(sc) == "{\"type\":\"scatter\",\"more\":{\"of\":{\"this\":\"a\"}},\"x\":123}"
-        end
+        # PlotlyBase >= 0.9 backs trace fields with JSON.Object, which preserves
+        # insertion order, so output is now deterministic regardless of julia/JSON version
+        @test JSON.json(sc) == "{\"type\":\"scatter\",\"x\":jsontext,\"more\":{\"of\":{\"this\":\"a\"}}}"
     end
 
     @testset "Parsing" begin
@@ -40,6 +29,10 @@
 
             @static if VersionNumber(Genie.Assets.package_version(Stipple)) >= v"0.30.6"
                 pl_in = stipple_parse(PlotlyBase.Layout{OrderedDict{Symbol, Any}}, pl_d)
+                @test pl_in[:xaxis_range] == [1, 2]
+
+                # JSON.Object is the default fields type since PlotlyBase 0.9
+                pl_in = stipple_parse(PlotlyBase.Layout{JSON.Object{Symbol, Any}}, pl_d)
                 @test pl_in[:xaxis_range] == [1, 2]
             end
         end

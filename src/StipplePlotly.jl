@@ -2,7 +2,7 @@ module StipplePlotly
 
 using Stipple, Stipple.Genie, Stipple.Reexport, Stipple.ParsingTools
 using Requires
-using OrderedCollections
+using PlotlyBase: JSON
 
 import Stipple.Genie: Assets.add_fileroute, Assets.asset_path
 
@@ -12,7 +12,7 @@ const assets_config = Stipple.Genie.Assets.AssetsConfig(package = "StipplePlotly
 
 _symbol_dict(x) = x
 _symbol_dict(d::AbstractDict) =
-    OrderedDict{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
+    JSON.Object{Symbol,Any}([(Symbol(k), _symbol_dict(v)) for (k, v) in d])
 
 #===#
 
