@@ -1,7 +1,9 @@
 name: ci
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
@@ -11,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6'
+          - '1.9'
           - '1'
           - 'pre'
           - 'nightly'
@@ -20,30 +22,22 @@ jobs:
           - macOS-latest
           - windows-latest
         arch:
-          - ''
-        exclude:
-          - os: macos-latest # Apple Silicon
-            version: '1.6'
-            arch: ''
-        include:
-          - os: macos-latest # Intel
-            version: '1.6'
-            arch: 'x64'
+          - default
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.version }}
-          arch: ${{ (matrix.arch == '') && runner.arch || matrix.arch }}
+          arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@latest
         with:
-          version: '1.7'
+          version: '1.10.12'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
